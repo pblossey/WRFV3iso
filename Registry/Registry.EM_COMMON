@@ -117,6 +117,10 @@ state    real   qg_gc          igj      dyn_em      1        Z     i1  "QG"    "
 state    real   qh_gc          igj      dyn_em      1        Z     i1  "QH"    "hail mixing ratio"   "kg kg-1"
 state    real   qni_gc         igj      dyn_em      1        Z     i1  "QNI"   "ice no concentration"   "m-3"
 state    real   qnr_gc         igj      dyn_em      1        Z     i1  "QNR"   "rain no concentration"   "m-3"
+state    real   dhdov_gc       igj      dyn_em      1        Z     i1  "DHDOV"   "deltaD of water vapor"   "per mil"
+state    real   do18v_gc       igj      dyn_em      1        Z     i1  "DO18V"   "deltaO18 of water vapor"   "per mil"
+state    real   dhdosurf_gc    ij       dyn_em      1        -     i1  "DHDOSURF"   "deltaD of surface waters"   "per mil"
+state    real   do18surf_gc    ij       dyn_em      1        -     i1  "DO18SURF"   "deltaO18 of surface waters"   "per mil"
 state    real   t_max_p        ij       dyn_em      1        -     i0d  "T_MAX_P"   "temperature at max pressure"         "K"
 state    real   ght_max_p      ij       dyn_em      1        -     i0d  "GHT_MAX_P" "geopotential height at max pressure" "m"
 state    real   max_p          ij       dyn_em      1        -     i0d  "MAX_P"     "max pressure "                       "Pa"
@@ -496,6 +500,58 @@ state   real    dfi_qvolg      ikjftb  dfi_scalar      1         -     \
    rhusdf=(bdy_interp:dt) "DFI_QVGRAUPEL"     "Graupel Particle Volume" "m(3) kg(-1)"
 #state   real    dfi_qvolh     ikjftb  dfi_scalar      1         -     \
    rhusdf=(bdy_interp:dt)  "DFI_QVHAIL"        "Hail Particle Volume" "m(3) kg(-1)"
+
+#bloss: scalars that hold mass mixing ratios of water isotopologues
+state   real    hdo_qv             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "HDO_QVAPOR"           "HDO Water vapor mixing ratio (relative to SMOW)"      "kg kg-1"
+state   real    hdo_qc             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "HDO_QCLOUD"           "HDO Cloud water mixing ratio (relative to SMOW)"      "kg kg-1"
+state   real    hdo_qr             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "HDO_QRAIN"            "HDO Rain water mixing ratio (relative to SMOW)"       "kg kg-1"
+state   real    hdo_qi             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "HDO_QICE"             "HDO Ice mixing ratio (relative to SMOW)"              "kg kg-1"
+state   real    hdo_qs             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "HDO_QSNOW"            "HDO Snow mixing ratio (relative to SMOW)"             "kg kg-1"
+state   real    hdo_qg             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "HDO_QGRAUP"           "HDO Graupel mixing ratio (relative to SMOW)"          "kg kg-1"
+state   real    o18_qv             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "O18_QVAPOR"           "O18 Water vapor mixing ratio (relative to SMOW)"      "kg kg-1"
+state   real    o18_qc             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "O18_QCLOUD"           "O18 Cloud water mixing ratio (relative to SMOW)"      "kg kg-1"
+state   real    o18_qr             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "O18_QRAIN"            "O18 Rain water mixing ratio (relative to SMOW)"       "kg kg-1"
+state   real    o18_qi             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "O18_QICE"             "O18 Ice mixing ratio (relative to SMOW)"              "kg kg-1"
+state   real    o18_qs             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "O18_QSNOW"            "O18 Snow mixing ratio (relative to SMOW)"             "kg kg-1"
+state   real    o18_qg             ikjftb   scalar       1         -     \
+   i0rhusdf=(bdy_interp:dt)  "O18_QGRAUP"           "O18 Graupel mixing ratio (relative to SMOW)"          "kg kg-1"
+
+#bloss: scalars that hold mass mixing ratios of water isotopologues
+state   real    dfi_hdo_qv             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_HDO_QVAPOR"           "HDO Water vapor mixing ratio (relative to SMOW)"      "kg kg-1"
+state   real    dfi_hdo_qc             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_HDO_QCLOUD"           "HDO Cloud water mixing ratio (relative to SMOW)"      "kg kg-1"
+state   real    dfi_hdo_qr             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_HDO_QRAIN"            "HDO Rain water mixing ratio (relative to SMOW)"       "kg kg-1"
+state   real    dfi_hdo_qi             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_HDO_QICE"             "HDO Ice mixing ratio (relative to SMOW)"              "kg kg-1"
+state   real    dfi_hdo_qs             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_HDO_QSNOW"            "HDO Snow mixing ratio (relative to SMOW)"             "kg kg-1"
+state   real    dfi_hdo_qg             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_HDO_QGRAUP"           "HDO Graupel mixing ratio (relative to SMOW)"          "kg kg-1"
+state   real    dfi_o18_qv             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_O18_QVAPOR"           "O18 Water vapor mixing ratio (relative to SMOW)"      "kg kg-1"
+state   real    dfi_o18_qc             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_O18_QCLOUD"           "O18 Cloud water mixing ratio (relative to SMOW)"      "kg kg-1"
+state   real    dfi_o18_qr             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_O18_QRAIN"            "O18 Rain water mixing ratio (relative to SMOW)"       "kg kg-1"
+state   real    dfi_o18_qi             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_O18_QICE"             "O18 Ice mixing ratio (relative to SMOW)"              "kg kg-1"
+state   real    dfi_o18_qs             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_O18_QSNOW"            "O18 Snow mixing ratio (relative to SMOW)"             "kg kg-1"
+state   real    dfi_o18_qg             ikjftb   dfi_scalar       1         -     \
+   rhusdf=(bdy_interp:dt)  "DFI_O18_QGRAUP"           "O18 Graupel mixing ratio (relative to SMOW)"          "kg kg-1"
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1109,6 +1165,54 @@ state    real  HAILNC           ij      misc        1         -      rhdu     "H
 state    real  SNOWNCV          ij      misc        1         -      r        "SNOWNCV"               "TIME-STEP NONCONVECTIVE SNOW AND ICE"                    "mm"
 state    real  GRAUPELNCV       ij      misc        1         -      r        "GRAUPELNCV"            "TIME-STEP NONCONVECTIVE GRAUPEL"                         "mm"
 state    real  HAILNCV          ij      misc        1         -      r        "HAILNCV"               "TIME-STEP NONCONVECTIVE HAIL"                            "mm"
+
+#bloss(2014-11): surface precipitation variables for water isotopologues.
+#  As currently coded, HDO_RAINNC==RAINNC if deltaD of accumulated rain == 0.
+state    real  HDO_RAINNC           ij      misc        1         -      rhdu     "HDO_RAINNC"                "ACCUMULATED TOTAL GRID SCALE HDO PRECIPITATION (relative to SMOW)"              "mm"      
+state    real  HDO_RAINNCV          ij      misc        1         -      r        "HDO_RAINNCV"               "TIME-STEP NONCONVECTIVE HDO PRECIPITATION (rel. to SMOW)"                   "mm"
+state    real  HDO_SNOWNC           ij      misc        1         -      rhdu     "HDO_SNOWNC"                "ACCUMULATED TOTAL GRID SCALE HDO SNOW AND ICE (rel. to SMOW)"               "mm"
+state    real  HDO_GRAUPELNC        ij      misc        1         -      rhdu     "HDO_GRAUPELNC"             "ACCUMULATED TOTAL GRID SCALE HDO GRAUPEL (rel. to SMOW)"                    "mm"
+state    real  HDO_SNOWNCV          ij      misc        1         -      r        "HDO_SNOWNCV"               "TIME-STEP NONCONVECTIVE HDO SNOW AND ICE (rel. to SMOW)"                    "mm"
+state    real  HDO_GRAUPELNCV       ij      misc        1         -      r        "HDO_GRAUPELNCV"            "TIME-STEP NONCONVECTIVE HDO GRAUPEL (rel. to SMOW)"                         "mm"
+
+state    real  O18_RAINNC           ij      misc        1         -      rhdu     "O18_RAINNC"                "ACCUMULATED TOTAL GRID SCALE O18 PRECIPITATION (relative to SMOW)"              "mm"      
+state    real  O18_RAINNCV          ij      misc        1         -      r        "O18_RAINNCV"               "TIME-STEP NONCONVECTIVE O18 PRECIPITATION (rel. to SMOW)"                   "mm"
+state    real  O18_SNOWNC           ij      misc        1         -      rhdu     "O18_SNOWNC"                "ACCUMULATED TOTAL GRID SCALE O18 SNOW AND ICE (rel. to SMOW)"               "mm"
+state    real  O18_GRAUPELNC        ij      misc        1         -      rhdu     "O18_GRAUPELNC"             "ACCUMULATED TOTAL GRID SCALE O18 GRAUPEL (rel. to SMOW)"                    "mm"
+state    real  O18_SNOWNCV          ij      misc        1         -      r        "O18_SNOWNCV"               "TIME-STEP NONCONVECTIVE O18 SNOW AND ICE (rel. to SMOW)"                    "mm"
+state    real  O18_GRAUPELNCV       ij      misc        1         -      r        "O18_GRAUPELNCV"            "TIME-STEP NONCONVECTIVE O18 GRAUPEL (rel. to SMOW)"                         "mm"
+
+#bloss(2014-11): accumulated volumetric tendencies of microphysical transformations
+#  within the Thompson microphysics.
+state    real  QLIQ_AUTO           ikj      misc        1         -      rhdu     "QLIQ_AUTO"                "ACCUMULATED TENDENCY DUE TO AUTOCONVERSION OF CLOUD LIQUID TO RAIN"              "kg kg-1"      
+state    real  QLIQ_COLL           ikj      misc        1         -      rhdu     "QLIQ_COLL"                "ACCUMULATED TENDENCY DUE TO COLLECTION OF CLOUD LIQUID BY RAIN"              "kg kg-1"      
+state    real  QICE_AUTO           ikj      misc        1         -      rhdu     "QICE_AUTO"                "ACCUMULATED TENDENCY DUE TO AUTOCONVERSION OF CLOUD ICE TO SNOW"              "kg kg-1"      
+state    real  QICE_COLL           ikj      misc        1         -      rhdu     "QICE_COLL"                "ACCUMULATED TENDENCY DUE TO COLLECTION OF CLOUD ICE BY SNOW"              "kg kg-1"      
+state    real  QICE_RIM           ikj      misc        1         -      rhdu     "QICE_RIM"                "ACCUMULATED TENDENCY DUE TO RIMING OF CLOUD LIQUID ONTO SNOW/GRAUPEL"              "kg kg-1"      
+state    real  QPCP_DEP           ikj      misc        1         -      rhdu     "QPCP_DEP"                "ACCUMULATED TENDENCY OF VAPOR DEPOSITION ONTO RAIN/SNOW/GRAUPEL"              "kg kg-1"      
+state    real  QVAP_CLD           ikj      misc        1         -      rhdu     "QVAP_CLD"                "ACCUMULATED TENDENCY OF VAPOR CONDENSATION ONTO CLOUD LIQUID"              "kg kg-1"      
+state    real  QPCP_SED           ikj      misc        1         -      rhdu     "QPCP_SED"                "ACCUMULATED TENDENCY OF RAIN/SNOW/GRAUPEL DUE TO SEDIMENTATION"              "kg kg-1"      
+
+#bloss(2014-11): accumulated volumetric tendencies of microphysical transformations
+#  for water isotopologues within the Thompson microphysics.
+state    real  HDO_LIQ_AUTO           ikj      misc        1         -      rhdu     "HDO_LIQ_AUTO"                "ACCUMULATED HDO TENDENCY DUE TO AUTOCONVERSION OF CLOUD LIQUID TO RAIN"              "kg kg-1"      
+state    real  HDO_LIQ_COLL           ikj      misc        1         -      rhdu     "HDO_LIQ_COLL"                "ACCUMULATED HDO TENDENCY DUE TO COLLECTION OF CLOUD LIQUID BY RAIN"              "kg kg-1"      
+state    real  HDO_ICE_AUTO           ikj      misc        1         -      rhdu     "HDO_ICE_AUTO"                "ACCUMULATED HDO TENDENCY DUE TO AUTOCONVERSION OF CLOUD ICE TO SNOW"              "kg kg-1"      
+state    real  HDO_ICE_COLL           ikj      misc        1         -      rhdu     "HDO_ICE_COLL"                "ACCUMULATED HDO TENDENCY DUE TO COLLECTION OF CLOUD ICE BY SNOW"              "kg kg-1"      
+state    real  HDO_ICE_RIM           ikj      misc        1         -      rhdu     "HDO_ICE_RIM"                "ACCUMULATED HDO TENDENCY DUE TO RIMING OF CLOUD LIQUID ONTO SNOW/GRAUPEL"              "kg kg-1"      
+state    real  HDO_PCP_DEP           ikj      misc        1         -      rhdu     "HDO_PCP_DEP"                "ACCUMULATED HDO TENDENCY OF VAPOR DEPOSITION ONTO RAIN/SNOW/GRAUPEL"              "kg kg-1"      
+state    real  HDO_VAP_CLD           ikj      misc        1         -      rhdu     "HDO_VAP_CLD"                "ACCUMULATED HDO TENDENCY OF VAPOR CONDENSATION ONTO CLOUD LIQUID"              "kg kg-1"      
+state    real  HDO_PCP_SED           ikj      misc        1         -      rhdu     "HDO_PCP_SED"                "ACCUMULATED HDO TENDENCY OF RAIN/SNOW/GRAUPEL DUE TO SEDIMENTATION"              "kg kg-1"      
+
+state    real  O18_LIQ_AUTO           ikj      misc        1         -      rhdu     "O18_LIQ_AUTO"                "ACCUMULATED H2O18 TENDENCY DUE TO AUTOCONVERSION OF CLOUD LIQUID TO RAIN"              "kg kg-1"      
+state    real  O18_LIQ_COLL           ikj      misc        1         -      rhdu     "O18_LIQ_COLL"                "ACCUMULATED H2O18 TENDENCY DUE TO COLLECTION OF CLOUD LIQUID BY RAIN"              "kg kg-1"      
+state    real  O18_ICE_AUTO           ikj      misc        1         -      rhdu     "O18_ICE_AUTO"                "ACCUMULATED H2O18 TENDENCY DUE TO AUTOCONVERSION OF CLOUD ICE TO SNOW"              "kg kg-1"      
+state    real  O18_ICE_COLL           ikj      misc        1         -      rhdu     "O18_ICE_COLL"                "ACCUMULATED H2O18 TENDENCY DUE TO COLLECTION OF CLOUD ICE BY SNOW"              "kg kg-1"      
+state    real  O18_ICE_RIM           ikj      misc        1         -      rhdu     "O18_ICE_RIM"                "ACCUMULATED H2O18 TENDENCY DUE TO RIMING OF CLOUD LIQUID ONTO SNOW/GRAUPEL"              "kg kg-1"      
+state    real  O18_PCP_DEP           ikj      misc        1         -      rhdu     "O18_PCP_DEP"                "ACCUMULATED H2O18 TENDENCY OF VAPOR DEPOSITION ONTO RAIN/SNOW/GRAUPEL"              "kg kg-1"      
+state    real  O18_VAP_CLD           ikj      misc        1         -      rhdu     "O18_VAP_CLD"                "ACCUMULATED H2O18 TENDENCY OF VAPOR CONDENSATION ONTO CLOUD LIQUID"              "kg kg-1"      
+state    real  O18_PCP_SED           ikj      misc        1         -      rhdu     "O18_PCP_SED"                "ACCUMULATED H2O18 TENDENCY OF RAIN/SNOW/GRAUPEL DUE TO SEDIMENTATION"              "kg kg-1"      
+
 state    real    refl_10cm      ikj     dyn_em      1         -     hdu       "refl_10cm"             "Radar reflectivity (lamda = 10 cm)"  "dBZ"
 state    real  NCA              ij      misc        1         -      r        "NCA"                   "COUNTER OF THE CLOUD RELAXATION TIME IN KF CUMULUS SCHEME"    ""      
 state    integer  LOWLYR        ij      misc        1         -     -         "LOWLYR"                "INDEX OF LOWEST MODEL LAYER ABOVE THE GROUND IN BMJ SCHEME"   ""      
@@ -1424,6 +1528,10 @@ state    real  CAPG             ij      misc        1         -      r        "C
 state    real  THC              ij      misc        1         -      r        "THC"                   "THERMAL INERTIA"                              "Cal cm-2 K-1 s-0.5"      
 state    real  HFX              ij      misc        1         -      rh       "HFX"                   "UPWARD HEAT FLUX AT THE SURFACE"              "W m-2"      
 state    real  QFX              ij      misc        1         -      rh       "QFX"                   "UPWARD MOISTURE FLUX AT THE SURFACE"          "kg m-2 s-1"      
+state    real  HDO_QFX          ij      misc        1         -      rh       "HDO_QFX"               "UPWARD HDO MOISTURE FLUX AT THE SURFACE (rel. to SMOW)"  "kg m-2 s-1"      
+state    real  O18_QFX          ij      misc        1         -      rh       "O18_QFX"               "UPWARD O18 MOISTURE FLUX AT THE SURFACE (rel. to SMOW)"  "kg m-2 s-1"      
+state    real  R_HDO_SURF       ij      misc        1         -      i01rhdu       "R_HDO_SURF"            "HDO ISOTOPIC RATIO OF SURFACE WATERS (rel. to SMOW)"  ""      
+state    real  R_O18_SURF       ij      misc        1         -      i01rhdu       "R_O18_SURF"            "O18 ISOTOPIC RATIO OF SURFACE WATERS (rel. to SMOW)"  ""      
 state    real  LH               ij      misc        1         -      rh       "LH"                    "LATENT HEAT FLUX AT THE SURFACE"              "W m-2"
 state    real  ACHFX            ij      misc        1         -      rhdu     "ACHFX"                 "ACCUMULATED UPWARD HEAT FLUX AT THE SURFACE"  "J m-2"
 state    real  ACLHF            ij      misc        1         -      rhdu     "ACLHF"                 "ACCUMULATED UPWARD LATENT HEAT FLUX AT THE SURFACE"  "J m-2"
@@ -2225,6 +2333,7 @@ package   nssl_2mom     mp_physics==17                -            moist:qv,qc,q
 package   nssl_2momccn  mp_physics==18                -            moist:qv,qc,qr,qi,qs,qg,qh;scalar:qnn,qnc,qnr,qni,qns,qng,qnh,qvolg
 package   nssl_1mom     mp_physics==19               -             moist:qv,qc,qr,qi,qs,qg,qh;scalar:qvolg
 package   nssl_1momlfo  mp_physics==21               -             moist:qv,qc,qr,qi,qs,qg
+package   thompiso      mp_physics==28               -             moist:qv,qc,qr,qi,qs,qg;scalar:hdo_qv,hdo_qc,hdo_qr,hdo_qi,hdo_qs,hdo_qg,o18_qv,o18_qc,o18_qr,o18_qi,o18_qs,o18_qg,qni,qnr;state:re_cloud,re_ice,re_snow
 package   etampold      mp_physics==95               -             moist:qv,qc,qr,qs;scalar:qt;state:f_ice_phy,f_rain_phy,f_rimef_phy
 endif
 
@@ -2248,6 +2357,7 @@ package   nssl_2mom_dfi     mp_physics_dfi==17       -             dfi_moist:dfi
 package   nssl_2mom_dficcn  mp_physics_dfi==18       -             dfi_moist:dfi_qv,dfi_qc,dfi_qr,dfi_qi,dfi_qs,dfi_qg,dfi_qh;dfi_scalar:dfi_qnn,dfi_qnc,dfi_qnr,dfi_qni,dfi_qns,dfi_qng,dfi_qnh,dfi_qvolg
 package   nssl_1mom_dfi     mp_physics_dfi==19       -             dfi_moist:dfi_qv,dfi_qc,dfi_qr,dfi_qi,dfi_qs,dfi_qg,dfi_qh;dfi_scalar:dfi_qvolg
 package   nssl_1momlfo_dfi  mp_physics_dfi==21       -             dfi_moist:dfi_qv,dfi_qc,dfi_qr,dfi_qi,dfi_qs,dfi_qg
+package   thompiso_dfi      mp_physics_dfi==28       -         dfi_moist:dfi_qv,dfi_qc,dfi_qr,dfi_qi,dfi_qs,dfi_qg;dfi_scalar:dfi_hdo_qv,dfi_hdo_qc,dfi_hdo_qr,dfi_hdo_qi,dfi_hdo_qs,dfi_hdo_qg,dfi_o18_qv,dfi_o18_qc,dfi_o18_qr,dfi_o18_qi,dfi_o18_qs,dfi_o18_qg,dfi_qni,dfi_qnr
 package   etampold_dfi      mp_physics_dfi==95       -             dfi_moist:dfi_qv,dfi_qc,dfi_qr,dfi_qs;dfi_scalar:dfi_qt
 
 package   noprogn       progn==0                     -             -
