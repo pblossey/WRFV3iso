@@ -75,6 +75,8 @@ MODULES = \
         module_mp_etaold.o \
 	module_mp_HWRF.o \
 	module_mp_thompson.o \
+	module_mp_water_isotopologues.o \
+	module_mp_thompiso.o \
 	module_mp_gsfcgce.o \
 	module_mp_morr_two_moment.o \
 	module_mp_milbrandt2mom.o \
