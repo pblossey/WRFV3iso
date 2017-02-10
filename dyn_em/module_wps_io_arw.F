@@ -796,6 +796,84 @@ CONTAINS
         ENDDO
        ENDDO
 
+       if(flag_dHDOV.eq.1) then
+       !bloss(2015-12-07): get deltaD for vapor
+       varName='DHDOV'
+    CALL retrieve_index(index,VarName,varname_all,nrecs,iret)
+    CALL mpi_file_read_at(iunit,file_offset(index+1),     &
+                             dumdata,hor_size*num_metgrid_levels,mpi_real4,             &
+                             mpi_status_ignore, ierr)
+       DO K=1,num_metgrid_levels
+        DO J=JTS,min(JTE,JDE-1)
+         DO I=ITS,min(ITE,IDE-1)
+           grid%dhdov_gc(I,K,J)=dumdata(I,J,K)
+	if (grid%dhdov_gc(I,K,J) .ne. grid%dhdov_gc(I,K,J) .or. grid%dhdov_gc(I,K,J) .lt. -1000.) then
+	write(a_message,*) 'bad dhdov_gc defined: ', I,K,J,grid%dhdov_gc(I,K,J)
+        CALL wrf_message ( a_message )            
+	call wrf_error_fatal(" bad dhdov_gc")
+	endif
+         ENDDO
+        ENDDO
+       ENDDO
+     end if
+
+       if(flag_dO18V.eq.1) then
+       !bloss(2015-12-07): get deltaO18 for vapor
+       varName='DO18V'
+    CALL retrieve_index(index,VarName,varname_all,nrecs,iret)
+    CALL mpi_file_read_at(iunit,file_offset(index+1),     &
+                             dumdata,hor_size*num_metgrid_levels,mpi_real4,             &
+                             mpi_status_ignore, ierr)
+       DO K=1,num_metgrid_levels
+        DO J=JTS,min(JTE,JDE-1)
+         DO I=ITS,min(ITE,IDE-1)
+           grid%do18v_gc(I,K,J)=dumdata(I,J,K)
+	if (grid%do18v_gc(I,K,J) .ne. grid%do18v_gc(I,K,J) .or. grid%do18v_gc(I,K,J) .lt. -1000.) then
+	write(a_message,*) 'bad do18v_gc defined: ', I,K,J,grid%do18v_gc(I,K,J)
+        CALL wrf_message ( a_message )            
+	call wrf_error_fatal(" bad do18v_gc")
+	endif
+         ENDDO
+        ENDDO
+       ENDDO
+     end if
+
+     
+
+     if(flag_dHDOSURF.eq.1) then
+       !bloss(2015-12-08): get deltaHDO value for surface waters
+       !  Will help make isotopic surface fluxes consistent with the standard water fluxes.
+    varName='DHDOSURF'
+    CALL retrieve_index(index,VarName,varname_all,nrecs,iret)
+    CALL mpi_file_read_at(iunit,file_offset(index+1),     &
+                             dumdata,hor_size,mpi_real4,             &
+                             mpi_status_ignore, ierr)
+
+        DO J=JTS,min(JTE,JDE-1)
+         DO I=ITS,min(ITE,IDE-1)
+           grid%dhdosurf_gc(I,J)=dumdata(I,J,1)
+         ENDDO
+        ENDDO
+      end if
+
+     write(a_message,*) 'flag_dO18SURF = ', flag_dO18SURF
+     CALL wrf_message ( a_message )            
+     if(flag_dO18SURF.eq.1) then
+       !bloss(2015-12-08): get deltaO18 value for surface waters
+       !  Will help make isotopic surface fluxes consistent with the standard water fluxes.
+    varName='DO18SURF'
+    CALL retrieve_index(index,VarName,varname_all,nrecs,iret)
+    CALL mpi_file_read_at(iunit,file_offset(index+1),     &
+                             dumdata,hor_size,mpi_real4,             &
+                             mpi_status_ignore, ierr)
+
+        DO J=JTS,min(JTE,JDE-1)
+         DO I=ITS,min(ITE,IDE-1)
+           grid%do18surf_gc(I,J)=dumdata(I,J,1)
+         ENDDO
+        ENDDO
+      end if
+
 !    varName='RWMR'
 !    CALL retrieve_index(index,VarName,varname_all,nrecs,iret)
 !    CALL mpi_file_read_at(iunit,file_offset(index+1),     &
