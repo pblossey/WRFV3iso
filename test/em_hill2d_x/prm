@@ -1,0 +1,15 @@
+ &EM_HILL2D_X
+
+read_grid_from_file = .true.
+
+terrain_type = 3
+hm = 800.
+xa = 20.e3
+
+/
+
+ &MP_THOMPSON
+
+ Nt_c = 200.e6
+
+/
