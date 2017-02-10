@@ -791,7 +791,7 @@ BENCH_START(vert_diff_tim)
                                       grid%div, moist, chem, scalar,tracer,         &
                                       grid%xkmv, grid%xkhv, config_flags%km_opt,                        &
                                       grid%fnm, grid%fnp, grid%dn, grid%dnw, grid%rdz, grid%rdzw, &
-                                      grid%hfx, grid%qfx, grid%ustm, rho,        &
+                                      grid%hfx, grid%qfx, grid%hdo_qfx, grid%o18_qfx, grid%ustm, rho,        &
                                       ids, ide, jds, jde, kds, kde,              &
                                       ims, ime, jms, jme, kms, kme,              &
                                       grid%i_start(ij), grid%i_end(ij),          &
