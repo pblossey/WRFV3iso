@@ -2543,7 +2543,7 @@ BENCH_END(tracer_adv_tim)
                                  k_start    , k_end               )
 
            IF( rk_step == 1 ) THEN
-             IF ( config_flags%nested .OR. &
+             IF ( is .EQ. P_HDO_QV .OR. is .EQ. P_O18_QV .OR. config_flags%nested .OR. & !bloss/WISO
                 ( config_flags%specified .AND. config_flags%have_bcs_scalar ) ) THEN
 
                CALL relax_bdy_scalar ( scalar_tend(ims,kms,jms,is),                            &
@@ -2608,7 +2608,7 @@ BENCH_END(tracer_adv_tim)
 
            IF ( config_flags%specified .AND. ( .NOT. config_flags%have_bcs_scalar ) ) THEN
 
-             IF(is .ne. P_QNN)THEN
+             IF(is .ne. P_QNN .AND. is .ne. P_HDO_QV .AND. is .ne. P_O18_QV)THEN ! bloss/WISO
                CALL flow_dep_bdy  ( scalar(ims,kms,jms,is),     &
                                   grid%ru_m, grid%rv_m, config_flags,   &
                                   grid%spec_zone,                  &
@@ -2618,7 +2618,7 @@ BENCH_END(tracer_adv_tim)
                                   grid%i_start(ij), grid%i_end(ij),  &
                                   grid%j_start(ij), grid%j_end(ij),  &
                                   k_start, k_end                    )
-             ELSE
+             ELSEIF(is .eq. P_QNN)THEN
                CALL flow_dep_bdy_qnn  ( scalar(ims,kms,jms,is),     &
                                   grid%ru_m, grid%rv_m, config_flags,   &
                                   grid%spec_zone,                  &
@@ -3390,6 +3390,36 @@ BENCH_START(micro_driver_tim)
 !       &        , QZG_CURR=scalar(ims,kms,jms,P_QZG), F_QZG=F_QZG          & ! "
 !       &        , QZH_CURR=scalar(ims,kms,jms,P_QZH), F_QZH=F_QZH          & ! "
       &        , QVOLG_CURR=scalar(ims,kms,jms,P_QVOLG), F_QVOLG=F_QVOLG      & ! for nssl_2mom
+      &        , HDO_QV=scalar(ims,kms,jms,P_HDO_QV), F_HDO_QV=F_HDO_QV               & !bloss/WISO
+      &        , HDO_QC=scalar(ims,kms,jms,P_HDO_QC), F_HDO_QC=F_HDO_QC               &
+      &        , HDO_QR=scalar(ims,kms,jms,P_HDO_QR), F_HDO_QR=F_HDO_QR               &
+      &        , HDO_QI=scalar(ims,kms,jms,P_HDO_QI), F_HDO_QI=F_HDO_QI               &
+      &        , HDO_QS=scalar(ims,kms,jms,P_HDO_QS), F_HDO_QS=F_HDO_QS               &
+      &        , HDO_QG=scalar(ims,kms,jms,P_HDO_QG), F_HDO_QG=F_HDO_QG               &
+      &        , HDO_RAINNC=grid%hdo_rainnc, HDO_RAINNCV=grid%hdo_rainncv                 &
+      &        , HDO_SNOWNC=grid%hdo_snownc, HDO_SNOWNCV=grid%hdo_snowncv                 &
+      &        , HDO_GRAUPELNC=grid%hdo_graupelnc, HDO_GRAUPELNCV=grid%hdo_graupelncv     & 
+      &        , O18_QV=scalar(ims,kms,jms,P_O18_QV), F_O18_QV=F_O18_QV               &
+      &        , O18_QC=scalar(ims,kms,jms,P_O18_QC), F_O18_QC=F_O18_QC               &
+      &        , O18_QR=scalar(ims,kms,jms,P_O18_QR), F_O18_QR=F_O18_QR               &
+      &        , O18_QI=scalar(ims,kms,jms,P_O18_QI), F_O18_QI=F_O18_QI               &
+      &        , O18_QS=scalar(ims,kms,jms,P_O18_QS), F_O18_QS=F_O18_QS               &
+      &        , O18_QG=scalar(ims,kms,jms,P_O18_QG), F_O18_QG=F_O18_QG               &
+      &        , O18_RAINNC=grid%o18_rainnc, O18_RAINNCV=grid%o18_rainncv                 &
+      &        , O18_SNOWNC=grid%o18_snownc, O18_SNOWNCV=grid%o18_snowncv                 &
+      &        , O18_GRAUPELNC=grid%o18_graupelnc, O18_GRAUPELNCV=grid%o18_graupelncv     & 
+      &        , QLIQ_AUTO=grid%qliq_auto, QLIQ_COLL=grid%qliq_coll       & !bloss/Thompson diagnostics
+      &        , QICE_AUTO=grid%qice_auto, QICE_COLL=grid%qice_coll       &
+      &        , QICE_RIM=grid%qice_rim, QPCP_DEP=grid%qpcp_dep       &
+      &        , QVAP_CLD=grid%qvap_cld, QPCP_SED=grid%qpcp_sed       &
+      &        , HDO_LIQ_AUTO=grid%hdo_liq_auto, HDO_LIQ_COLL=grid%hdo_liq_coll       &
+      &        , HDO_ICE_AUTO=grid%hdo_ice_auto, HDO_ICE_COLL=grid%hdo_ice_coll       &
+      &        , HDO_ICE_RIM=grid%hdo_ice_rim, HDO_PCP_DEP=grid%hdo_pcp_dep       &
+      &        , HDO_VAP_CLD=grid%hdo_vap_cld, HDO_PCP_SED=grid%hdo_pcp_sed       &
+      &        , O18_LIQ_AUTO=grid%o18_liq_auto, O18_LIQ_COLL=grid%o18_liq_coll       &
+      &        , O18_ICE_AUTO=grid%o18_ice_auto, O18_ICE_COLL=grid%o18_ice_coll       &
+      &        , O18_ICE_RIM=grid%o18_ice_rim, O18_PCP_DEP=grid%o18_pcp_dep       &
+      &        , O18_VAP_CLD=grid%o18_vap_cld, O18_PCP_SED=grid%o18_pcp_sed       &
       &        , qrcuten=grid%rqrcuten, qscuten=grid%rqscuten             &
       &        , qicuten=grid%rqicuten,mu=grid%mut                        &
       &        , HAIL=config_flags%gsfcgce_hail                           & ! for gsfcgce
