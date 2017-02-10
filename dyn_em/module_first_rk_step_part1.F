@@ -443,6 +443,12 @@ BENCH_START(surf_driver_tim)
      &        ,BLDTACTTIME=grid%bldtacttime                                              & 
      &        ,PSIM=psim          ,P_PHY=grid%p_hyd        ,Q10=grid%q10            &
      &        ,Q2=grid%q2              ,QFX=grid%qfx            ,QSFC=grid%qsfc          &
+     &        ,HDO_QFX=grid%hdo_qfx                                                     &
+     &        ,R_HDO_SURF=grid%r_hdo_surf &
+     &        ,HDO_QV=scalar(ims,kms,jms,P_HDO_QV)  & ! romps/bloss
+     &        ,O18_QFX=grid%o18_qfx                                                     &
+     &        ,R_O18_SURF=grid%r_o18_surf &
+     &        ,O18_QV=scalar(ims,kms,jms,P_O18_QV)  & ! romps/bloss
      &        ,QSHLTR=grid%qshltr      ,QZ0=grid%qz0            ,RAINCV=grid%raincv      &
      &        ,RA_LW_PHYSICS=config_flags%ra_lw_physics            ,RHO=rho            &
      &        ,RMOL=grid%rmol          ,SFCEVP=grid%sfcevp      ,SFCEXC=grid%sfcexc      &
