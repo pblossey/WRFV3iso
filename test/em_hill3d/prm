@@ -1,0 +1,8 @@
+ &EM_HILL2D_X
+
+terrain_type = 5
+hm = 1000.
+xa = 20.e3
+terrain_beta = 6.
+
+/
