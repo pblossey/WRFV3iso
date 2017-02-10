@@ -270,7 +270,10 @@ SUBROUTINE adjust_tempqv ( mub, save_mub, znw, p_top, &
             tc = (th(i,k,j)+300.)*(p_new(i,k,j)/1.e5)**(2./7.) - 273.15
             es = 610.78*exp(17.0809*tc/(234.175+tc))
             e = rh(i,k,j)*es
-            qv(i,k,j) = 0.622*e/(p_new(i,k,j)-e)
+!bloss(2015-12-09): this messes up the initial isotopic composition!!
+!bloss: Get rid of it for now            
+!bloss: TODO -- either apply this to isotopic vapor as well or only turn it off when isotopes are present
+!bloss            qv(i,k,j) = 0.622*e/(p_new(i,k,j)-e)
          END DO
       END DO
    END DO
