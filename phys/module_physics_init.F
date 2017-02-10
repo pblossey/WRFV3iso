@@ -578,7 +578,8 @@ integer myproc
    has_reqs = 0
    if (config_flags%ra_lw_physics .eq. RRTMG_LWSCHEME .and. &
        config_flags%ra_sw_physics .eq. RRTMG_SWSCHEME .and. &
-       config_flags%mp_physics    .eq. THOMPSON) then
+       (config_flags%mp_physics    .eq. THOMPSON .or. &
+        config_flags%mp_physics    .eq. THOMPISO)   ) then
       has_reqc = 1
       has_reqi = 1
       has_reqs = 1
@@ -2948,6 +2949,7 @@ integer myproc
    USE module_mp_nssl_2mom
    USE module_mp_cammgmp_driver, ONLY:CAMMGMP_INIT !CAM5's microphysics
 #endif
+   USE module_mp_thompiso
 !------------------------------------------------------------------
    IMPLICIT NONE
 !------------------------------------------------------------------
@@ -3040,6 +3042,11 @@ integer myproc
 ! Cycling the WRF forecast with moving nests will cause this initialization to be
 ! called for each nest move. This is potentially very computationally expensive.
          IF(start_of_simulation.or.restart.or.config_flags%cycling)CALL thompson_init
+
+     CASE (THOMPISO)
+! Cycling the WRF forecast with moving nests will cause this initialization to be
+! called for each nest move. This is potentially very computationally expensive.
+         IF(start_of_simulation.or.restart.or.config_flags%cycling)CALL thompiso_init
 
      CASE (MORR_TWO_MOMENT)
          CALL morr_two_moment_init

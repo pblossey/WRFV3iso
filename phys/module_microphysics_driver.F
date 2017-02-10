@@ -42,10 +42,14 @@ SUBROUTINE microphysics_driver(                                          &
                       ,qzr_curr,qzi_curr,qzs_curr,qzg_curr,qzh_curr      &
                       ,qns_curr,qnr_curr,qng_curr,qnn_curr,qnc_curr      &
                       ,qvolg_curr                                        &
+                      ,hdo_qv,hdo_qc,hdo_qr,hdo_qi,hdo_qs,hdo_qg   &
+                      ,o18_qv,o18_qc,o18_qr,o18_qi,o18_qs,o18_qg   &
                       ,f_qv,f_qc,f_qr,f_qi,f_qs,f_qg,f_qndrop,f_qni      &
                       ,f_qns,f_qnr,f_qng,f_qnc,f_qnn,f_qh,f_qnh          &
                       ,            f_qzr,f_qzi,f_qzs,f_qzg,f_qzh         &
                       ,f_qvolg                                           &
+                      ,f_hdo_qv,f_hdo_qc,f_hdo_qr,f_hdo_qi,f_hdo_qs,f_hdo_qg   &
+                      ,f_o18_qv,f_o18_qc,f_o18_qr,f_o18_qi,f_o18_qs,f_o18_qg   &
                       ,qrcuten, qscuten, qicuten, mu                     &
                       ,qt_curr,f_qt                                      &
                       ,mp_restart_state,tbpvs_state,tbpvs0_state         & ! for etampnew or etampold
@@ -56,6 +60,18 @@ SUBROUTINE microphysics_driver(                                          &
                       ,snownc,    snowncv                                &
                       ,hailnc,    hailncv                                &
                       ,graupelnc, graupelncv                             &
+                      ,QLIQ_AUTO, QLIQ_COLL, QICE_AUTO, QICE_COLL & !bloss(2014-11): aggregate microphysical tendencies
+                      ,QICE_RIM, QPCP_DEP, QVAP_CLD, QPCP_SED &
+                      ,hdo_rainnc,    hdo_rainncv                                &
+                      ,hdo_snownc,    hdo_snowncv                                &
+                      ,hdo_graupelnc, hdo_graupelncv                             &
+                      ,o18_rainnc,    o18_rainncv                                &
+                      ,o18_snownc,    o18_snowncv                                &
+                      ,o18_graupelnc, o18_graupelncv                             &
+                      ,HDO_LIQ_AUTO, HDO_LIQ_COLL, HDO_ICE_AUTO, HDO_ICE_COLL & !bloss(2014-11): aggregate microphysical tendencies
+                      ,HDO_ICE_RIM, HDO_PCP_DEP, HDO_VAP_CLD, HDO_PCP_SED &
+                      ,O18_LIQ_AUTO, O18_LIQ_COLL, O18_ICE_AUTO, O18_ICE_COLL &
+                      ,O18_ICE_RIM, O18_PCP_DEP, O18_VAP_CLD, O18_PCP_SED &
 #ifdef WRF_CHEM
                       ,rainprod, evapprod                                &
                       ,qv_b4mp, qc_b4mp, qi_b4mp, qs_b4mp                &
@@ -81,6 +97,7 @@ SUBROUTINE microphysics_driver(                                          &
                     ,WSM6SCHEME, ETAMPNEW, ETAMPOLD, THOMPSON, MORR_TWO_MOMENT     &
                     ,GSFCGCESCHEME, WDM5SCHEME, WDM6SCHEME, NSSL_2MOM, NSSL_2MOMCCN  &
                     ,NSSL_1MOM,NSSL_1MOMLFO & ! ,NSSL_3MOM       &
+                    ,THOMPISO &
                     ,MILBRANDT2MOM , CAMMGMPSCHEME  !,MILBRANDT3MOM
 #endif
 
@@ -116,6 +133,7 @@ SUBROUTINE microphysics_driver(                                          &
 #if (EM_CORE==1)
    USE module_mp_nssl_2mom
 #endif
+   USE module_mp_thompiso
 
    USE module_mp_HWRF
    USE module_mixactivate, only: prescribe_aerosol_mixactivate
@@ -418,6 +436,14 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                  ,qt_curr,qndrop_curr,qni_curr,qh_curr,qnh_curr   &
                  ,qns_curr,qnr_curr,qng_curr,qnn_curr,qnc_curr    &
                  ,qzr_curr,qzi_curr,qzs_curr,qzg_curr,qzh_curr    &
+                 ,QLIQ_AUTO, QLIQ_COLL, QICE_AUTO, QICE_COLL & !bloss(2014-11): aggregate microphysical tendencies
+                 ,QICE_RIM, QPCP_DEP, QVAP_CLD, QPCP_SED &
+                 ,hdo_qv,hdo_qc,hdo_qr,hdo_qi,hdo_qs,hdo_qg &
+                 ,o18_qv,o18_qc,o18_qr,o18_qi,o18_qs,o18_qg &
+                 ,HDO_LIQ_AUTO, HDO_LIQ_COLL, HDO_ICE_AUTO, HDO_ICE_COLL & !bloss(2014-11): aggregate microphysical tendencies
+                 ,HDO_ICE_RIM, HDO_PCP_DEP, HDO_VAP_CLD, HDO_PCP_SED &
+                 ,O18_LIQ_AUTO, O18_LIQ_COLL, O18_ICE_AUTO, O18_ICE_COLL &
+                 ,O18_ICE_RIM, O18_PCP_DEP, O18_VAP_CLD, O18_PCP_SED &
                  ,qvolg_curr
 
    REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                  &
@@ -454,6 +480,18 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                                                          ,SNOWNCV &
                                                        ,GRAUPELNC &
                                                       ,GRAUPELNCV &
+                                                      ,HDO_RAINNC &
+                                                     ,HDO_RAINNCV &
+                                                      ,HDO_SNOWNC &
+                                                     ,HDO_SNOWNCV &
+                                                   ,HDO_GRAUPELNC &
+                                                  ,HDO_GRAUPELNCV &
+                                                      ,O18_RAINNC &
+                                                     ,O18_RAINNCV &
+                                                      ,O18_SNOWNC &
+                                                     ,O18_SNOWNCV &
+                                                   ,O18_GRAUPELNC &
+                                                  ,O18_GRAUPELNCV &
                                                           ,HAILNC &
                                                          ,HAILNCV
    INTEGER,OPTIONAL,INTENT(IN   )    ::                        id
@@ -468,6 +506,8 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
    LOGICAL, OPTIONAL :: f_qv,f_qc,f_qr,f_qi,f_qs,f_qg,f_qndrop,f_qni,f_qt    &
                        ,f_qns,f_qnr,f_qng,f_qnn,f_qnc,f_qh,f_qnh,f_qzr       &
                        ,f_qzi,f_qzs,f_qzg,f_qzh,f_qvolg
+   LOGICAL, OPTIONAL :: f_hdo_qv,f_hdo_qc,f_hdo_qr,f_hdo_qi,f_hdo_qs,f_hdo_qg &
+                       ,f_o18_qv,f_o18_qc,f_o18_qr,f_o18_qi,f_o18_qs,f_o18_qg 
 
    LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
    INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
@@ -663,6 +703,194 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                 CALL wrf_error_fatal ( 'arguments not present for calling thompson_et_al' )
              ENDIF
 !
+        CASE (THOMPISO)
+             CALL wrf_debug ( 100 , 'microphysics_driver: calling isotope-enabled thompson' )
+             IF ( PRESENT( QV_CURR ) .AND. PRESENT ( QC_CURR ) .AND.  &
+                  PRESENT( QR_CURR ) .AND. PRESENT ( QI_CURR ) .AND.  &
+                  PRESENT( QS_CURR ) .AND. PRESENT ( QG_CURR ) .AND.  &
+                  PRESENT( HDO_QV ) .AND. PRESENT ( HDO_QC ) .AND.  &
+                  PRESENT( HDO_QR ) .AND. PRESENT ( HDO_QI ) .AND.  &
+                  PRESENT( HDO_QS ) .AND. PRESENT ( HDO_QG ) .AND.  &
+                  PRESENT( O18_QV ) .AND. PRESENT ( O18_QC ) .AND.  &
+                  PRESENT( O18_QR ) .AND. PRESENT ( O18_QI ) .AND.  &
+                  PRESENT( O18_QS ) .AND. PRESENT ( O18_QG ) .AND.  &
+                  PRESENT( QNR_CURR) .AND. PRESENT ( QNI_CURR) .AND.  &
+                  PRESENT( RAINNC  ) .AND. PRESENT ( RAINNCV ) .AND.  &
+                  PRESENT( HDO_RAINNC  ) .AND. PRESENT ( HDO_RAINNCV ) .AND.  &
+                  PRESENT( O18_RAINNC  ) .AND. PRESENT ( O18_RAINNCV ) ) THEN
+#ifdef WRF_CHEM
+                 qv_b4mp(its:ite,kts:kte,jts:jte) = qv_curr(its:ite,kts:kte,jts:jte)
+                 qc_b4mp(its:ite,kts:kte,jts:jte) = qc_curr(its:ite,kts:kte,jts:jte)
+                 qi_b4mp(its:ite,kts:kte,jts:jte) = qi_curr(its:ite,kts:kte,jts:jte)
+                 qs_b4mp(its:ite,kts:kte,jts:jte) = qs_curr(its:ite,kts:kte,jts:jte)
+#endif
+                 IF ( PRESENT( QLIQ_AUTO ) .AND. PRESENT ( QLIQ_COLL ) .AND.  &
+                      PRESENT( QICE_AUTO ) .AND. PRESENT ( QICE_COLL ) .AND.  &
+                      PRESENT( QICE_RIM ) .AND. PRESENT ( QPCP_DEP ) .AND.  &
+                      PRESENT( QVAP_CLD ) .AND. PRESENT ( QPCP_SED ) .AND.  &
+                      PRESENT( HDO_LIQ_AUTO ) .AND. PRESENT ( HDO_LIQ_COLL ) .AND.  &
+                      PRESENT( HDO_ICE_AUTO ) .AND. PRESENT ( HDO_ICE_COLL ) .AND.  &
+                      PRESENT( HDO_ICE_RIM ) .AND. PRESENT ( HDO_PCP_DEP ) .AND.  &
+                      PRESENT( HDO_VAP_CLD ) .AND. PRESENT ( HDO_PCP_SED ) .AND.  &
+                      PRESENT( O18_LIQ_AUTO ) .AND. PRESENT ( O18_LIQ_COLL ) .AND.  &
+                      PRESENT( O18_ICE_AUTO ) .AND. PRESENT ( O18_ICE_COLL ) .AND.  &
+                      PRESENT( o18_ICE_RIM ) .AND. PRESENT ( o18_PCP_DEP ) .AND.  &
+                      PRESENT( o18_VAP_CLD ) .AND. PRESENT ( o18_PCP_SED ) ) THEN
+
+                   CALL mp_gt_driver_iso(                      &
+                        QV=qv_curr,                         &
+                        QC=qc_curr,                         &
+                        QR=qr_curr,                         &
+                        QI=qi_curr,                         &
+                        QS=qs_curr,                         &
+                        QG=qg_curr,                         &
+                        HDO_QV=hdo_qv,                         &
+                        HDO_QC=hdo_qc,                         &
+                        HDO_QR=hdo_qr,                         &
+                        HDO_QI=hdo_qi,                         &
+                        HDO_QS=hdo_qs,                         &
+                        HDO_QG=hdo_qg,                         &
+                        O18_QV=o18_qv,                         &
+                        O18_QC=o18_qc,                         &
+                        O18_QR=o18_qr,                         &
+                        O18_QI=o18_qi,                         &
+                        O18_QS=o18_qs,                         &
+                        O18_QG=o18_qg,                         &
+                        NI=qni_curr,                        &
+                        NR=qnr_curr,                        &
+                        TH=th,                              &
+                        PII=pi_phy,                         &
+                        P=p,                                &
+                        DZ=dz8w,                            &
+                        DT_IN=dt,                           &
+                        ITIMESTEP=itimestep,                &
+                        RAINNC=RAINNC,                      &
+                        RAINNCV=RAINNCV,                    &
+                        SNOWNC=SNOWNC,                      &
+                        SNOWNCV=SNOWNCV,                    &
+                        GRAUPELNC=GRAUPELNC,                &
+                        GRAUPELNCV=GRAUPELNCV,              &
+                        SR=SR,                              &
+                        HDO_RAINNC=HDO_RAINNC,                      & !HDO PRECIPITATION
+                        HDO_RAINNCV=HDO_RAINNCV,                    &
+                        HDO_SNOWNC=HDO_SNOWNC,                      &
+                        HDO_SNOWNCV=HDO_SNOWNCV,                    &
+                        HDO_GRAUPELNC=HDO_GRAUPELNC,                &
+                        HDO_GRAUPELNCV=HDO_GRAUPELNCV,              &
+                        O18_RAINNC=O18_RAINNC,                      & !O18 PRECIPITATION
+                        O18_RAINNCV=O18_RAINNCV,                    &
+                        O18_SNOWNC=O18_SNOWNC,                      &
+                        O18_SNOWNCV=O18_SNOWNCV,                    &
+                        O18_GRAUPELNC=O18_GRAUPELNC,                &
+                        O18_GRAUPELNCV=O18_GRAUPELNCV,              &
+                        QLIQ_AUTO=QLIQ_AUTO,                        & !bloss(2014-11): aggregate microphys tendencies
+                        QLIQ_COLL=QLIQ_COLL,                        &
+                        QICE_AUTO=QICE_AUTO,                        &
+                        QICE_COLL=QICE_COLL,                        &
+                        QICE_RIM=QICE_RIM,                        &
+                        QPCP_DEP=QPCP_DEP,                        &
+                        QVAP_CLD=QVAP_CLD,                        &
+                        QPCP_SED=QPCP_SED,                        &
+                        HDO_LIQ_AUTO=HDO_LIQ_AUTO,                        & !bloss(2014-11): aggregate hdo microphys tendencies
+                        HDO_LIQ_COLL=HDO_LIQ_COLL,                        &
+                        HDO_ICE_AUTO=HDO_ICE_AUTO,                        &
+                        HDO_ICE_COLL=HDO_ICE_COLL,                        &
+                        HDO_ICE_RIM=HDO_ICE_RIM,                        &
+                        HDO_PCP_DEP=HDO_PCP_DEP,                        &
+                        HDO_VAP_CLD=HDO_VAP_CLD,                        &
+                        HDO_PCP_SED=HDO_PCP_SED,                        &
+                        O18_LIQ_AUTO=O18_LIQ_AUTO,                        & !bloss(2014-11): aggregate h2o18 microphys tendencies
+                        O18_LIQ_COLL=O18_LIQ_COLL,                        &
+                        O18_ICE_AUTO=O18_ICE_AUTO,                        &
+                        O18_ICE_COLL=O18_ICE_COLL,                        &
+                        O18_ICE_RIM=O18_ICE_RIM,                        &
+                        O18_PCP_DEP=O18_PCP_DEP,                        &
+                        O18_VAP_CLD=O18_VAP_CLD,                        &
+                        O18_PCP_SED=O18_PCP_SED,                        &
+#ifdef WRF_CHEM
+                        RAINPROD=rainprod,                  &
+                        EVAPPROD=evapprod,                  &
+#endif
+                        REFL_10CM=refl_10cm,                &
+                        diagflag=diagflag,                  &
+                        do_radar_ref=do_radar_ref,          &
+                        re_cloud=re_cloud,                  & ! G. Thompson
+                        re_ice=re_ice,                      & ! G. Thompson
+                        re_snow=re_snow,                    & ! G. Thompson
+                        has_reqc=has_reqc,                  & ! G. Thompson
+                        has_reqi=has_reqi,                  & ! G. Thompson
+                        has_reqs=has_reqs,                  & ! G. Thompson
+                        IDS=ids,IDE=ide, JDS=jds,JDE=jde, KDS=kds,KDE=kde, &
+                        IMS=ims,IME=ime, JMS=jms,JME=jme, KMS=kms,KME=kme, &
+                        ITS=its,ITE=ite, JTS=jts,JTE=jte, KTS=kts,KTE=kte)
+                 ELSE
+                   CALL mp_gt_driver_iso(                      &
+                        QV=qv_curr,                         &
+                        QC=qc_curr,                         &
+                        QR=qr_curr,                         &
+                        QI=qi_curr,                         &
+                        QS=qs_curr,                         &
+                        QG=qg_curr,                         &
+                        HDO_QV=hdo_qv,                         &
+                        HDO_QC=hdo_qc,                         &
+                        HDO_QR=hdo_qr,                         &
+                        HDO_QI=hdo_qi,                         &
+                        HDO_QS=hdo_qs,                         &
+                        HDO_QG=hdo_qg,                         &
+                        O18_QV=o18_qv,                         &
+                        O18_QC=o18_qc,                         &
+                        O18_QR=o18_qr,                         &
+                        O18_QI=o18_qi,                         &
+                        O18_QS=o18_qs,                         &
+                        O18_QG=o18_qg,                         &
+                        NI=qni_curr,                        &
+                        NR=qnr_curr,                        &
+                        TH=th,                              &
+                        PII=pi_phy,                         &
+                        P=p,                                &
+                        DZ=dz8w,                            &
+                        DT_IN=dt,                           &
+                        ITIMESTEP=itimestep,                &
+                        RAINNC=RAINNC,                      &
+                        RAINNCV=RAINNCV,                    &
+                        SNOWNC=SNOWNC,                      &
+                        SNOWNCV=SNOWNCV,                    &
+                        GRAUPELNC=GRAUPELNC,                &
+                        GRAUPELNCV=GRAUPELNCV,              &
+                        SR=SR,                              &
+                        HDO_RAINNC=HDO_RAINNC,                      & !HDO PRECIPITATION
+                        HDO_RAINNCV=HDO_RAINNCV,                    &
+                        HDO_SNOWNC=HDO_SNOWNC,                      &
+                        HDO_SNOWNCV=HDO_SNOWNCV,                    &
+                        HDO_GRAUPELNC=HDO_GRAUPELNC,                &
+                        HDO_GRAUPELNCV=HDO_GRAUPELNCV,              &
+                        O18_RAINNC=O18_RAINNC,                      & !O18 PRECIPITATION
+                        O18_RAINNCV=O18_RAINNCV,                    &
+                        O18_SNOWNC=O18_SNOWNC,                      &
+                        O18_SNOWNCV=O18_SNOWNCV,                    &
+                        O18_GRAUPELNC=O18_GRAUPELNC,                &
+                        O18_GRAUPELNCV=O18_GRAUPELNCV,              &
+#ifdef WRF_CHEM
+                        RAINPROD=rainprod,                  &
+                        EVAPPROD=evapprod,                  &
+#endif
+                        REFL_10CM=refl_10cm,                &
+                        diagflag=diagflag,                  &
+                        do_radar_ref=do_radar_ref,          &
+                        re_cloud=re_cloud,                  & ! G. Thompson
+                        re_ice=re_ice,                      & ! G. Thompson
+                        re_snow=re_snow,                    & ! G. Thompson
+                        has_reqc=has_reqc,                  & ! G. Thompson
+                        has_reqi=has_reqi,                  & ! G. Thompson
+                        has_reqs=has_reqs,                  & ! G. Thompson
+                        IDS=ids,IDE=ide, JDS=jds,JDE=jde, KDS=kds,KDE=kde, &
+                        IMS=ims,IME=ime, JMS=jms,JME=jme, KMS=kms,KME=kme, &
+                        ITS=its,ITE=ite, JTS=jts,JTE=jte, KTS=kts,KTE=kte)
+                 END IF
+               ELSE
+                 CALL wrf_error_fatal ( 'arguments not present for calling isotope-enabled thompson' )
+               ENDIF
+               !
 
     CASE (MORR_TWO_MOMENT)
          CALL wrf_debug(100, 'microphysics_driver: calling morrison two moment')
