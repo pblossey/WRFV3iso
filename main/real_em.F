@@ -687,9 +687,11 @@ SUBROUTINE assemble_output ( grid , config_flags , loop , time_loop_max )
 character *19 :: temp19
 character *24 :: temp24 , temp24b
 
-   REAL , DIMENSION(:,:,:) , ALLOCATABLE , SAVE :: ubdy3dtemp1 , vbdy3dtemp1 , tbdy3dtemp1 , pbdy3dtemp1 , qbdy3dtemp1
+   REAL , DIMENSION(:,:,:) , ALLOCATABLE , SAVE :: ubdy3dtemp1 , vbdy3dtemp1 , tbdy3dtemp1 , pbdy3dtemp1 , &
+        qbdy3dtemp1, qhdobdy3dtemp1, qo18bdy3dtemp1
    REAL , DIMENSION(:,:,:) , ALLOCATABLE , SAVE :: mbdy2dtemp1
-   REAL , DIMENSION(:,:,:) , ALLOCATABLE , SAVE :: ubdy3dtemp2 , vbdy3dtemp2 , tbdy3dtemp2 , pbdy3dtemp2 , qbdy3dtemp2
+   REAL , DIMENSION(:,:,:) , ALLOCATABLE , SAVE :: ubdy3dtemp2 , vbdy3dtemp2 , tbdy3dtemp2 , pbdy3dtemp2 , &
+        qbdy3dtemp2, qhdobdy3dtemp2, qo18bdy3dtemp2
    REAL , DIMENSION(:,:,:) , ALLOCATABLE , SAVE :: mbdy2dtemp2
 real::t1,t2
 
@@ -765,6 +767,18 @@ real::t1,t2
          ALLOCATE ( qbdy3dtemp2(ims:ime,kms:kme,jms:jme) )
          ALLOCATE ( mbdy2dtemp2(ims:ime,1:1,    jms:jme) )
 
+         !bloss(2015-12-09): Add a conditional here later??
+         IF ( ALLOCATED ( qhdobdy3dtemp1 ) ) DEALLOCATE ( qhdobdy3dtemp1 )
+         IF ( ALLOCATED ( qhdobdy3dtemp2 ) ) DEALLOCATE ( qhdobdy3dtemp2 )
+         ALLOCATE ( qhdobdy3dtemp1(ims:ime,kms:kme,jms:jme) )
+         ALLOCATE ( qhdobdy3dtemp2(ims:ime,kms:kme,jms:jme) )
+
+         !bloss(2015-12-09): Add a conditional here later??
+         IF ( ALLOCATED ( qo18bdy3dtemp1 ) ) DEALLOCATE ( qo18bdy3dtemp1 )
+         IF ( ALLOCATED ( qo18bdy3dtemp2 ) ) DEALLOCATE ( qo18bdy3dtemp2 )
+         ALLOCATE ( qo18bdy3dtemp1(ims:ime,kms:kme,jms:jme) )
+         ALLOCATE ( qo18bdy3dtemp2(ims:ime,kms:kme,jms:jme) )
+
       END IF
 
       !  Open the wrfinput file.  From this program, this is an *output* file.
@@ -807,6 +821,12 @@ real::t1,t2
          CALL couple ( grid%mu_2 , grid%mub , pbdy3dtemp1 , grid%ph_2                , 'h' , grid%msfty , &
                        ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, ips, ipe, jps, jpe, kps, kpe )
          CALL couple ( grid%mu_2 , grid%mub , qbdy3dtemp1 , grid%moist(:,:,:,P_QV)      , 't' , grid%msfty , &
+                       ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, ips, ipe, jps, jpe, kps, kpe )
+   
+         !bloss(2015-12-09): get boundary data for HDOV and O18V. add conditional later??
+         CALL couple ( grid%mu_2 , grid%mub , qhdobdy3dtemp1 , grid%scalar(:,:,:,P_HDO_QV)      , 't' , grid%msfty , &
+                       ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, ips, ipe, jps, jpe, kps, kpe )
+         CALL couple ( grid%mu_2 , grid%mub , qo18bdy3dtemp1 , grid%scalar(:,:,:,P_O18_QV)      , 't' , grid%msfty , &
                        ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, ips, ipe, jps, jpe, kps, kpe )
    
          DO j = jps , MIN(jde-1,jpe)
@@ -880,6 +900,23 @@ real::t1,t2
                                                                     ids , ide , jds , jde , 1 , 1 , &
                                                                     ims , ime , jms , jme , 1 , 1 , &
                                                                     ips , ipe , jps , jpe , 1 , 1 )
+
+         !bloss(2015-12-09): extract HDOV and O18V boundary data into BXS, BXE, etc. arrays.
+         !  add conditional later
+         CALL stuff_bdy     ( qhdobdy3dtemp1 , grid%scalar_bxs(:,:,:,P_HDO_QV), grid%scalar_bxe(:,:,:,P_HDO_QV),     &
+                                               grid%scalar_bys(:,:,:,P_HDO_QV), grid%scalar_bye(:,:,:,P_HDO_QV),     &
+                                                              'T' , spec_bdy_width      ,               &
+                                                                    ids , ide , jds , jde , kds , kde , &
+                                                                    ims , ime , jms , jme , kms , kme , &
+                                                                    ips , ipe , jps , jpe , kps , kpe )
+
+         CALL stuff_bdy     ( qo18bdy3dtemp1 , grid%scalar_bxs(:,:,:,P_O18_QV), grid%scalar_bxe(:,:,:,P_O18_QV),     &
+                                               grid%scalar_bys(:,:,:,P_O18_QV), grid%scalar_bye(:,:,:,P_O18_QV),     &
+                                                              'T' , spec_bdy_width      ,               &
+                                                                    ids , ide , jds , jde , kds , kde , &
+                                                                    ims , ime , jms , jme , kms , kme , &
+                                                                    ips , ipe , jps , jpe , kps , kpe )
+
       END IF
 
 
@@ -933,6 +970,15 @@ real::t1,t2
                        ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, ips, ipe, jps, jpe, kps, kpe )
          CALL couple ( grid%mu_2 , grid%mub , qbdy3dtemp2 , grid%moist(:,:,:,P_QV)      , 't' , grid%msfty , &
                        ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, ips, ipe, jps, jpe, kps, kpe )
+   
+         !bloss(2015-12-09): get boundary data for HDOV and O18V for new time.
+         !  This will be used to compute boundary tendency terms.
+         !  TODO: add conditional later??
+         CALL couple ( grid%mu_2 , grid%mub , qhdobdy3dtemp2 , grid%scalar(:,:,:,P_HDO_QV)      , 't' , grid%msfty , &
+                       ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, ips, ipe, jps, jpe, kps, kpe )
+         CALL couple ( grid%mu_2 , grid%mub , qo18bdy3dtemp2 , grid%scalar(:,:,:,P_O18_QV)      , 't' , grid%msfty , &
+                       ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, ips, ipe, jps, jpe, kps, kpe )
+
    
          DO j = jps , jpe
             DO i = ips , ipe
@@ -1023,6 +1069,26 @@ real::t1,t2
                                                                ids , ide , jds , jde , 1 , 1 , &
                                                                ims , ime , jms , jme , 1 , 1 , &
                                                                ips , ipe , jps , jpe , 1 , 1 )
+
+         !bloss(2015-12-09): compute boundary tendencies for HDOV and O18V and dump into BTXS, BTXE, etc. arrays.
+         !  TODO: add conditional later
+         CALL stuff_bdytend ( qhdobdy3dtemp2 , qhdobdy3dtemp1 , REAL(interval_seconds) ,                 &
+                                                               grid%scalar_btxs(:,:,:,P_HDO_QV), grid%scalar_btxe(:,:,:,P_HDO_QV), &
+                                                               grid%scalar_btys(:,:,:,P_HDO_QV), grid%scalar_btye(:,:,:,P_HDO_QV), &
+                                                               'T' , &
+                                                               spec_bdy_width      , &
+                                                               ids , ide , jds , jde , kds , kde , &
+                                                               ims , ime , jms , jme , kms , kme , &
+                                                               ips , ipe , jps , jpe , kps , kpe )
+         CALL stuff_bdytend ( qo18bdy3dtemp2 , qo18bdy3dtemp1 , REAL(interval_seconds) ,                 &
+                                                               grid%scalar_btxs(:,:,:,P_O18_QV), grid%scalar_btxe(:,:,:,P_O18_QV), &
+                                                               grid%scalar_btys(:,:,:,P_O18_QV), grid%scalar_btye(:,:,:,P_O18_QV), &
+                                                               'T' , &
+                                                               spec_bdy_width      , &
+                                                               ids , ide , jds , jde , kds , kde , &
+                                                               ims , ime , jms , jme , kms , kme , &
+                                                               ips , ipe , jps , jpe , kps , kpe )
+
       END IF
 
       !  Both pieces of the boundary data are now available to be written (initial time and tendency).
@@ -1123,6 +1189,8 @@ real::t1,t2
                      tbdy3dtemp1(i,k,j) = tbdy3dtemp2(i,k,j)
                      pbdy3dtemp1(i,k,j) = pbdy3dtemp2(i,k,j)
                      qbdy3dtemp1(i,k,j) = qbdy3dtemp2(i,k,j)
+                     qhdobdy3dtemp1(i,k,j) = qhdobdy3dtemp2(i,k,j)
+                     qo18bdy3dtemp1(i,k,j) = qo18bdy3dtemp2(i,k,j)
                   END DO
                END DO
             END DO
@@ -1199,6 +1267,21 @@ real::t1,t2
                                                                        ims , ime , jms , jme , 1 , 1 , &
                                                                        ips , ipe , jps , jpe , 1 , 1 )
    
+            !bloss(2015-12-09): extract HDOV and O18V boundary data into BXS, BXE, etc. arrays.
+            !  add conditional later
+            CALL stuff_bdy     ( qhdobdy3dtemp1 , grid%scalar_bxs(:,:,:,P_HDO_QV), grid%scalar_bxe(:,:,:,P_HDO_QV),     &
+                                                  grid%scalar_bys(:,:,:,P_HDO_QV), grid%scalar_bye(:,:,:,P_HDO_QV),     &
+                                                                 'T' , spec_bdy_width      ,               &
+                                                                       ids , ide , jds , jde , kds , kde , &
+                                                                       ims , ime , jms , jme , kms , kme , &
+                                                                       ips , ipe , jps , jpe , kps , kpe )
+            CALL stuff_bdy     ( qo18bdy3dtemp1 , grid%scalar_bxs(:,:,:,P_O18_QV), grid%scalar_bxe(:,:,:,P_O18_QV),     &
+                                                  grid%scalar_bys(:,:,:,P_O18_QV), grid%scalar_bye(:,:,:,P_O18_QV),     &
+                                                                 'T' , spec_bdy_width      ,               &
+                                                                       ids , ide , jds , jde , kds , kde , &
+                                                                       ims , ime , jms , jme , kms , kme , &
+                                                                       ips , ipe , jps , jpe , kps , kpe )
+
          END IF
 
       ELSE IF ( loop .EQ. time_loop_max ) THEN
