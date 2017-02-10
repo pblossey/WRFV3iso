@@ -429,6 +429,28 @@ integer::oops1,oops2
          END IF
       END IF
 
+      !bloss: Initialization for R_HDO_SURF
+      write(a_message,*) 'flag_dhdosurf = ', flag_dhdosurf
+      CALL wrf_debug ( 0 , a_message)
+      IF ( flag_dhdosurf .EQ. 1 ) THEN
+        DO j=jts,min(jde,jte)
+          DO i=its,min(ide-1,ite)
+            grid%R_HDO_SURF(i,j) = 1. + 1.e-3*grid%dhdosurf_gc(i,j)
+          END DO
+        END DO
+      end IF
+
+      !bloss: Initialization for R_O18_SURF
+      write(a_message,*) 'flag_do18surf = ', flag_do18surf
+      CALL wrf_debug ( 0 , a_message)
+      IF ( flag_do18surf .EQ. 1 ) THEN
+        DO j=jts,min(jde,jte)
+          DO i=its,min(ide-1,ite)
+            grid%R_O18_SURF(i,j) = 1. + 1.e-3*grid%do18surf_gc(i,j)
+          END DO
+        END DO
+      end IF
+
       !  Is there any vertical interpolation to do?  The "old" data comes in on the correct
       !  vertical locations already.
 
@@ -1378,6 +1400,77 @@ integer::oops1,oops2
                                      ids , ide , jds , jde , kds , kde , &
                                      ims , ime , jms , jme , kms , kme , &
                                      its , ite , jts , jte , kts , kte )
+               END IF
+            END DO
+         END IF
+
+         !bloss: Initialization for HDO VAPOR
+         write(a_message,*) 'flag_dhdov = ', flag_dhdov
+         CALL wrf_debug ( 0 , a_message)
+         IF ( flag_dhdov .EQ. 1 ) THEN
+            DO im = PARAM_FIRST_SCALAR, num_3d_s
+               IF ( im .EQ. P_HDO_QV ) THEN
+                 write(a_message,*) 'Interpolating dhdov_gc onto WRF grid in scalar(:,:,:,P_HDO_QV)'
+                 CALL wrf_debug ( 0 , a_message)
+                  CALL vert_interp ( grid%dhdov_gc , grid%pd_gc , scalar(:,:,:,P_HDO_QV) , grid%pb , &
+                                     num_metgrid_levels , 'Q' , &
+                                     interp_type , lagrange_order , extrap_type , &
+                                     lowest_lev_from_sfc , use_levels_below_ground , use_surface , &
+                                     zap_close_levels , force_sfc_in_vinterp , &
+                                     ids , ide , jds , jde , kds , kde , &
+                                     ims , ime , jms , jme , kms , kme , &
+                                     its , ite , jts , jte , kts , kte )
+
+                  do k = 1,num_metgrid_levels
+                    write(a_message,*) 'deltaD in dhdov_gc, k = ', k, &
+                         ' pres(k) = ', MAXVAL(grid%pd_gc(:,k,:)), &
+                         ' max/min = ', MAXVAL(grid%dhdov_gc(:,k,:)), MINVAL(grid%dhdov_gc(:,k,:))
+                    CALL wrf_debug ( 0 , a_message)
+                  end do
+
+                  do k = kts,kte
+                    write(a_message,*) 'deltaD in P_HDO_QV, k = ', k, 'max/min = ', &
+                         MAXVAL(scalar(:,k,:,P_HDO_QV)), MINVAL(scalar(:,k,:,P_HDO_QV))
+                    CALL wrf_debug ( 0 , a_message)
+                  end do
+
+!!$                  !That call interpolated deltaD from the metgrib file onto the model's grid
+!!$                  !  Now, we need to convert that to a mass mixing ratio, which will sit in
+!!$                  !  scalar(:,:,:,P_HDO_QV).  While it's not ideal, let's normalize things
+!!$                  !  so that scalar(:,:,:,P_HDO_QV)==moist(:,:,:,P_QV) when deltaD==0.
+!!$                  scalar(:,:,:,P_HDO_QV) = moist(:,:,:,P_QV) *( 1. + 1.e-3*scalar(:,:,:,P_HDO_QV) )
+               END IF
+            END DO
+         END IF
+
+         !bloss: Initialization for H2O18 VAPOR
+         write(a_message,*) 'flag_do18v = ', flag_do18v
+         CALL wrf_debug ( 0 , a_message)
+         IF ( flag_do18v .EQ. 1 ) THEN
+            DO im = PARAM_FIRST_SCALAR, num_3d_s
+               IF ( im .EQ. P_O18_QV ) THEN
+                 write(a_message,*) 'Interpolating do18v_gc onto WRF grid in scalar(:,:,:,P_O18_QV)'
+                 CALL wrf_debug ( 0 , a_message)
+                  CALL vert_interp ( grid%do18v_gc , grid%pd_gc , scalar(:,:,:,P_O18_QV) , grid%pb , &
+                                     num_metgrid_levels , 'Q' , &
+                                     interp_type , lagrange_order , extrap_type , &
+                                     lowest_lev_from_sfc , use_levels_below_ground , use_surface , &
+                                     zap_close_levels , force_sfc_in_vinterp , &
+                                     ids , ide , jds , jde , kds , kde , &
+                                     ims , ime , jms , jme , kms , kme , &
+                                     its , ite , jts , jte , kts , kte )
+
+                  do k = kts,kte
+                    write(a_message,*) 'deltaD in P_O18_QV, k = ', k, 'max/min = ', &
+                         MAXVAL(scalar(:,k,:,P_O18_QV)), MINVAL(scalar(:,k,:,P_O18_QV))
+                    CALL wrf_debug ( 0 , a_message)
+                  end do
+
+!!$                  !That call interpolated deltaD from the metgrib file onto the model's grid
+!!$                  !  Now, we need to convert that to a mass mixing ratio, which will sit in
+!!$                  !  scalar(:,:,:,P_O18_QV).  While it's not ideal, let's normalize things
+!!$                  !  so that scalar(:,:,:,P_O18_QV)==moist(:,:,:,P_QV) when deltaO18==0.
+!!$                  scalar(:,:,:,P_O18_QV) = moist(:,:,:,P_QV) *( 1. + 1.e-3*scalar(:,:,:,P_O18_QV) )
                END IF
             END DO
          END IF
@@ -2616,6 +2709,16 @@ endif
                            ids , ide , jds , jde , kds , kde ,                    &
                            ims , ime , jms , jme , kms , kme ,                    &
                            its , ite , jts , jte , kts , kte-1 )
+      END IF
+
+      !bloss(2015-12-09): scalar(:,:,:,P_HDO_QV) holds deltaD of water vapor.
+      !  Convert this to a mass mixing ratio.  While it's not ideal, let's normalize things
+      !  so that scalar(:,:,:,P_HDO_QV)==moist(:,:,:,P_QV) when deltaD==0.  Similarly for O18
+      IF ( flag_dhdov .EQ. 1 ) THEN
+        scalar(:,:,:,P_HDO_QV) = moist(:,:,:,P_QV) *( 1. + 1.e-3*scalar(:,:,:,P_HDO_QV) )
+      END IF
+      IF ( flag_do18v .EQ. 1 ) THEN
+        scalar(:,:,:,P_O18_QV) = moist(:,:,:,P_QV) *( 1. + 1.e-3*scalar(:,:,:,P_O18_QV) )
       END IF
 
       !  If this is data from the SI, then we probably do not have the original
