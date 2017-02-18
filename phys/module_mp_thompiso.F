@@ -835,6 +835,10 @@
 !+---+-----------------------------------------------------------------+
 !..This is a wrapper routine designed to transfer values from 3D to 1D.
 !+---+-----------------------------------------------------------------+
+!bloss(2017-02-15): Add separate microphysical outputs for
+!                  deposition, sublimation, rain evaporation tendencies
+!                  rather than single net deposition tendency used previously.
+!                  These changes are tagged below with bloss(dep/sub/revp).
       SUBROUTINE mp_gt_driver_iso(qv, qc, qr, qi, qs, qg, &
                               hdo_qv, hdo_qc, hdo_qr, hdo_qi, hdo_qs, hdo_qg, &
                               o18_qv, o18_qc, o18_qr, o18_qi, o18_qs, o18_qg, &
@@ -850,11 +854,14 @@
                               O18_SNOWNC, O18_SNOWNCV, &
                               O18_GRAUPELNC, O18_GRAUPELNCV, &
                           QLIQ_AUTO, QLIQ_COLL, QICE_AUTO, QICE_COLL, &
-                          QICE_RIM, QPCP_DEP, QVAP_CLD, QPCP_SED, &
+                          QICE_RIM, QVAP_CLD, QPCP_SED, &
+                          QPCP_DEP, QPCP_SUB, QPCP_REVP, & !bloss(dep/sub/revp)
                           HDO_LIQ_AUTO, HDO_LIQ_COLL, HDO_ICE_AUTO, HDO_ICE_COLL, &
-                          HDO_ICE_RIM, HDO_PCP_DEP, HDO_VAP_CLD, HDO_PCP_SED, &
+                          HDO_ICE_RIM, HDO_VAP_CLD, HDO_PCP_SED, &
+                          HDO_PCP_DEP, HDO_PCP_SUB, HDO_PCP_REVP, & !bloss(dep/sub/revp)
                           O18_LIQ_AUTO, O18_LIQ_COLL, O18_ICE_AUTO, O18_ICE_COLL, &
-                          O18_ICE_RIM, O18_PCP_DEP, O18_VAP_CLD, O18_PCP_SED, &
+                          O18_ICE_RIM, O18_VAP_CLD, O18_PCP_SED, &
+                          O18_PCP_DEP, O18_PCP_SUB, O18_PCP_REVP, & !bloss(dep/sub/revp)
                               refl_10cm, diagflag, do_radar_ref,      &
                               re_cloud, re_ice, re_snow,              &
                               has_reqc, has_reqi, has_reqs,           &
@@ -889,11 +896,14 @@
       ! Accumulated aggregate microphysical tendencies
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT)::      &
                           QLIQ_AUTO, QLIQ_COLL, QICE_AUTO, QICE_COLL, &
-                          QICE_RIM, QPCP_DEP, QVAP_CLD, QPCP_SED, &
+                          QICE_RIM, QVAP_CLD, QPCP_SED, &
+                          QPCP_DEP, QPCP_SUB, QPCP_REVP, & !bloss(dep/sub/revp)
                           HDO_LIQ_AUTO, HDO_LIQ_COLL, HDO_ICE_AUTO, HDO_ICE_COLL, &
-                          HDO_ICE_RIM, HDO_PCP_DEP, HDO_VAP_CLD, HDO_PCP_SED, &
+                          HDO_ICE_RIM, HDO_VAP_CLD, HDO_PCP_SED, &
+                          HDO_PCP_DEP, HDO_PCP_SUB, HDO_PCP_REVP, & !bloss(dep/sub/revp)
                           O18_LIQ_AUTO, O18_LIQ_COLL, O18_ICE_AUTO, O18_ICE_COLL, &
-                          O18_ICE_RIM, O18_PCP_DEP, O18_VAP_CLD, O18_PCP_SED
+                          O18_ICE_RIM, O18_VAP_CLD, O18_PCP_SED, &
+                          O18_PCP_DEP, O18_PCP_SUB, O18_PCP_REVP !bloss(dep/sub/revp)
 
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT)::       &
                           refl_10cm
@@ -915,10 +925,12 @@
       ! aggregate tendencies
       REAL, DIMENSION(kts:kte) :: &
                           qliq_auto1d, qliq_coll1d, qice_auto1d, qice_coll1d, &
-                          qice_rim1d, qpcp_dep1d, qvap_cld1d, qpcp_sed1d
+                          qice_rim1d, qvap_cld1d, qpcp_sed1d, &
+                          qpcp_dep1d, qpcp_sub1d, qpcp_revp1d !bloss(dep/sub/revp)
       REAL, DIMENSION(kts:kte,niso_max) :: &
                           iso_qliq_auto1d, iso_qliq_coll1d, iso_qice_auto1d, iso_qice_coll1d, &
-                          iso_qice_rim1d, iso_qpcp_dep1d, iso_qvap_cld1d, iso_qpcp_sed1d
+                          iso_qice_rim1d, iso_qvap_cld1d, iso_qpcp_sed1d, &
+                          iso_qpcp_dep1d, iso_qpcp_sub1d, iso_qpcp_revp1d !bloss(dep/sub/revp)
            
       LOGICAL :: accumulated_hdo, accumulated_o18
       REAL, DIMENSION(its:ite, jts:jte):: pcp_ra, pcp_sn, pcp_gr, pcp_ic
@@ -1032,8 +1044,11 @@
                       pptrain, pptsnow, pptgraul, pptice, &
                           iso_qv1d, iso_qc1d, iso_qi1d, iso_qr1d, iso_qs1d, iso_qg1d, & 
                           iso_pptrain, iso_pptsnow, iso_pptgraul, iso_pptice, &
-                          qliq_auto1d, qliq_coll1d, qice_auto1d, qice_coll1d, qice_rim1d, qpcp_dep1d, qvap_cld1d, qpcp_sed1d, &
-                          iso_qliq_auto1d, iso_qliq_coll1d, iso_qice_auto1d, iso_qice_coll1d, iso_qice_rim1d, iso_qpcp_dep1d, iso_qvap_cld1d, iso_qpcp_sed1d, &
+                          qliq_auto1d, qliq_coll1d, qice_auto1d, qice_coll1d, qice_rim1d, qvap_cld1d, qpcp_sed1d, &
+                          qpcp_dep1d, qpcp_sub1d, qpcp_revp1d, & !bloss(dep/sub/revp)
+                          iso_qliq_auto1d, iso_qliq_coll1d, iso_qice_auto1d, iso_qice_coll1d, &
+                          iso_qice_rim1d, iso_qvap_cld1d, iso_qpcp_sed1d, &
+                          iso_qpcp_dep1d, iso_qpcp_sub1d, iso_qpcp_revp1d, & !bloss(dep/sub/revp)
                       kts, kte, dt, i, j &
                           , niso, iso_index &
                           )
@@ -1068,12 +1083,16 @@
               qice_coll(i,kts:kte,j) = qice_coll(i,kts:kte,j) + dt*qice_coll1d(kts:kte)
          if (PRESENT(qice_rim)) &
               qice_rim(i,kts:kte,j) = qice_rim(i,kts:kte,j) + dt*qice_rim1d(kts:kte)
-         if (PRESENT(qpcp_dep)) &
-              qpcp_dep(i,kts:kte,j) = qpcp_dep(i,kts:kte,j) + dt*qpcp_dep1d(kts:kte)
          if (PRESENT(qvap_cld)) &
               qvap_cld(i,kts:kte,j) = qvap_cld(i,kts:kte,j) + dt*qvap_cld1d(kts:kte)
          if (PRESENT(qpcp_sed)) &
               qpcp_sed(i,kts:kte,j) = qpcp_sed(i,kts:kte,j) + dt*qpcp_sed1d(kts:kte)
+         if (PRESENT(qpcp_dep)) &
+              qpcp_dep(i,kts:kte,j) = qpcp_dep(i,kts:kte,j) + dt*qpcp_dep1d(kts:kte) !bloss(dep/sub/revp)
+         if (PRESENT(qpcp_sub)) &
+              qpcp_sub(i,kts:kte,j) = qpcp_sub(i,kts:kte,j) + dt*qpcp_sub1d(kts:kte) !bloss(dep/sub/revp)
+         if (PRESENT(qpcp_revp)) &
+              qpcp_revp(i,kts:kte,j) = qpcp_revp(i,kts:kte,j) + dt*qpcp_revp1d(kts:kte) !bloss(dep/sub/revp)
 
          do k = kts, kte
             qv(i,k,j) = qv1d(k)
@@ -1229,12 +1248,16 @@
                   hdo_ice_coll(i,kts:kte,j) = hdo_ice_coll(i,kts:kte,j) + dt*iso_qice_coll1d(kts:kte,nn)
              if (PRESENT(hdo_ice_rim)) &
                   hdo_ice_rim(i,kts:kte,j) = hdo_ice_rim(i,kts:kte,j) + dt*iso_qice_rim1d(kts:kte,nn)
-             if (PRESENT(hdo_pcp_dep)) &
-                  hdo_pcp_dep(i,kts:kte,j) = hdo_pcp_dep(i,kts:kte,j) + dt*iso_qpcp_dep1d(kts:kte,nn)
              if (PRESENT(hdo_vap_cld)) &
                   hdo_vap_cld(i,kts:kte,j) = hdo_vap_cld(i,kts:kte,j) + dt*iso_qvap_cld1d(kts:kte,nn)
              if (PRESENT(hdo_pcp_sed)) &
                   hdo_pcp_sed(i,kts:kte,j) = hdo_pcp_sed(i,kts:kte,j) + dt*iso_qpcp_sed1d(kts:kte,nn)
+             if (PRESENT(hdo_pcp_dep)) &
+                  hdo_pcp_dep(i,kts:kte,j) = hdo_pcp_dep(i,kts:kte,j) + dt*iso_qpcp_dep1d(kts:kte,nn) !bloss(dep/sub/revp)
+             if (PRESENT(hdo_pcp_sub)) &
+                  hdo_pcp_sub(i,kts:kte,j) = hdo_pcp_sub(i,kts:kte,j) + dt*iso_qpcp_sub1d(kts:kte,nn) !bloss(dep/sub/revp)
+             if (PRESENT(hdo_pcp_revp)) &
+                  hdo_pcp_revp(i,kts:kte,j) = hdo_pcp_revp(i,kts:kte,j) + dt*iso_qpcp_revp1d(kts:kte,nn) !bloss(dep/sub/revp)
 
            CASE(20)
              if(.NOT.accumulated_o18) then
@@ -1269,12 +1292,16 @@
                   o18_ice_coll(i,kts:kte,j) = o18_ice_coll(i,kts:kte,j) + dt*iso_qice_coll1d(kts:kte,nn)
              if (PRESENT(o18_ice_rim)) &
                   o18_ice_rim(i,kts:kte,j) = o18_ice_rim(i,kts:kte,j) + dt*iso_qice_rim1d(kts:kte,nn)
-             if (PRESENT(o18_pcp_dep)) &
-                  o18_pcp_dep(i,kts:kte,j) = o18_pcp_dep(i,kts:kte,j) + dt*iso_qpcp_dep1d(kts:kte,nn)
              if (PRESENT(o18_vap_cld)) &
                   o18_vap_cld(i,kts:kte,j) = o18_vap_cld(i,kts:kte,j) + dt*iso_qvap_cld1d(kts:kte,nn)
              if (PRESENT(o18_pcp_sed)) &
                   o18_pcp_sed(i,kts:kte,j) = o18_pcp_sed(i,kts:kte,j) + dt*iso_qpcp_sed1d(kts:kte,nn)
+             if (PRESENT(o18_pcp_dep)) &
+                  o18_pcp_dep(i,kts:kte,j) = o18_pcp_dep(i,kts:kte,j) + dt*iso_qpcp_dep1d(kts:kte,nn) !bloss(dep/sub/revp)
+             if (PRESENT(o18_pcp_sub)) &
+                  o18_pcp_sub(i,kts:kte,j) = o18_pcp_sub(i,kts:kte,j) + dt*iso_qpcp_sub1d(kts:kte,nn) !bloss(dep/sub/revp)
+             if (PRESENT(o18_pcp_revp)) &
+                  o18_pcp_revp(i,kts:kte,j) = o18_pcp_revp(i,kts:kte,j) + dt*iso_qpcp_revp1d(kts:kte,nn) !bloss(dep/sub/revp)
 
            CASE DEFAULT
              write(*,*) 'BAD ISO_INDEX'
@@ -1330,8 +1357,11 @@
                           pptrain, pptsnow, pptgraul, pptice, &
                           iso_qv1d, iso_qc1d, iso_qi1d, iso_qr1d, iso_qs1d, iso_qg1d, & 
                           iso_pptrain, iso_pptsnow, iso_pptgraul, iso_pptice, &
-                          qliq_auto, qliq_coll, qice_auto, qice_coll, qice_rim, qpcp_dep, qvap_cld, qpcp_sed, &
-                          iso_qliq_auto, iso_qliq_coll, iso_qice_auto, iso_qice_coll, iso_qice_rim, iso_qpcp_dep, iso_qvap_cld, iso_qpcp_sed, &
+                          qliq_auto, qliq_coll, qice_auto, qice_coll, qice_rim, qvap_cld, qpcp_sed, &
+                          qpcp_dep, qpcp_sub, qpcp_revp, & !bloss(dep/sub/revp)
+                          iso_qliq_auto, iso_qliq_coll, iso_qice_auto, iso_qice_coll, &
+                          iso_qice_rim, iso_qvap_cld, iso_qpcp_sed, &
+                          iso_qpcp_dep, iso_qpcp_sub, iso_qpcp_revp, & !bloss(dep/sub/revp)
                           kts, kte, dt, ii, jj &
                           , niso, iso_index &
                           )
@@ -1354,10 +1384,12 @@
            iso_pptrain, iso_pptsnow, iso_pptgraul, iso_pptice
       ! aggregate tendencies
       REAL, DIMENSION(kts:kte), INTENT(OUT) :: &
-           qliq_auto, qliq_coll, qice_auto, qice_coll, qice_rim, qpcp_dep, qvap_cld, qpcp_sed
+           qliq_auto, qliq_coll, qice_auto, qice_coll, qice_rim, qvap_cld, qpcp_sed, &
+           qpcp_dep, qpcp_sub, qpcp_revp !bloss(dep/sub/revp)
       REAL, DIMENSION(kts:kte,niso), INTENT(OUT) :: &
            iso_qliq_auto, iso_qliq_coll, iso_qice_auto, iso_qice_coll, &
-           iso_qice_rim, iso_qpcp_dep, iso_qvap_cld, iso_qpcp_sed
+           iso_qice_rim, iso_qvap_cld, iso_qpcp_sed, &
+           iso_qpcp_dep, iso_qpcp_sub, iso_qpcp_revp !bloss(dep/sub/revp)
 
 !..Local variables
 !bloss: Note on units.
@@ -1605,17 +1637,20 @@
       qice_auto(:) = 0.
       qice_coll(:) = 0.
       qice_rim(:) = 0.
-      qpcp_dep(:) = 0.
       qvap_cld(:) = 0.
       qpcp_sed(:) = 0.
-      iso_qliq_auto(:,:) = 0.
+      qpcp_dep(:) = 0. !bloss(dep/sub/revp)
+      qpcp_sub(:) = 0. !bloss(dep/sub/revp)
+      qpcp_revp(:) = 0. !bloss(dep/sub/revp)
       iso_qliq_coll(:,:) = 0.
       iso_qice_auto(:,:) = 0.
       iso_qice_coll(:,:) = 0.
       iso_qice_rim(:,:) = 0.
-      iso_qpcp_dep(:,:) = 0.
       iso_qvap_cld(:,:) = 0.
       iso_qpcp_sed(:,:) = 0.
+      iso_qpcp_dep(:,:) = 0. !bloss(dep/sub/revp)
+      iso_qpcp_sub(:,:) = 0. !bloss(dep/sub/revp)
+      iso_qpcp_revp(:,:) = 0. !bloss(dep/sub/revp)
 
 !+---+-----------------------------------------------------------------+
 !..Put column of data into local arrays.
@@ -3890,11 +3925,30 @@
       ! (rain/snow/graupel) to compute budgets for contributions to surface precip.
       ! I realize that cloud ice may precipitate to the surface, but I'm assuming that
       ! this will be a small term.
-      qpcp_dep(:) = &
-           ( prs_ide(:) & ! vap --> snow because deposition onto cloud ice grows into snow
-           + prs_sde(:) + prg_gde(:) & ! vapor deposition onto snow/graupel
-           - rho(:)*prv_rev(:) & ! rain evaporation
-           ) / rho(:)
+
+
+      !bloss(dep/sub/revp): Separate tendencies for deposition, sublimation and rain evaporation
+      !  All based on the sign of deposition/sublimation for standard water.
+      where(prs_ide(:) > 0.)
+        qpcp_dep(:) = qpcp_dep(:) + prs_ide(:)/rho(:)
+      elsewhere
+        qpcp_sub(:) = qpcp_sub(:) + prs_ide(:)/rho(:)
+      end where
+
+      where(prs_sde(:) > 0.)
+        qpcp_dep(:) = qpcp_dep(:) + prs_sde(:)/rho(:)
+      elsewhere
+        qpcp_sub(:) = qpcp_sub(:) + prs_sde(:)/rho(:)
+      end where
+
+      where(prg_gde(:) > 0.)
+        qpcp_dep(:) = qpcp_dep(:) + prg_gde(:)/rho(:)
+      elsewhere
+        qpcp_sub(:) = qpcp_sub(:) + prg_gde(:)/rho(:)
+      end where
+
+      qpcp_revp(:) = - prv_rev(:)
+        
       qvap_cld(:) = prw_vcd(:) ! vapor--> cloud liquid, may help us identify Bergeron process
       qliq_auto(:) = prr_wau(:) / rho(:) ! cloud liq --> rain autoconversion
       qliq_coll(:) = prr_rcw(:) / rho(:) ! collection of cloud liq by rain
@@ -3905,11 +3959,28 @@
 
       !bloss(2014-10): save aggregated tendencies to compute budgets for liquid/ice precipitation
       do nn = 1,niso
-        iso_qpcp_dep(:,nn) = &
-             ( iso_prs_ide(:,nn) & ! vap --> snow because deposition onto cloud ice grows into snow
-             + iso_prs_sde(:,nn) + iso_prg_gde(:,nn) & ! vapor deposition onto snow/graupel
-             - rho(:)*iso_prv_rev(:,nn) & ! rain evaporation
-             ) / rho(:)
+        !bloss(dep/sub/revp): Separate tendencies for deposition, sublimation and rain evaporation
+        !  All based on the sign of deposition/sublimation for standard water.
+        where(prs_ide(:) > 0.) 
+          iso_qpcp_dep(:,nn) = iso_qpcp_dep(:,nn) + iso_prs_ide(:,nn)/rho(:)
+        elsewhere
+          iso_qpcp_sub(:,nn) = iso_qpcp_sub(:,nn) + iso_prs_ide(:,nn)/rho(:)
+        end where
+
+        where(prs_sde(:) > 0.)
+          iso_qpcp_dep(:,nn) = iso_qpcp_dep(:,nn) + iso_prs_sde(:,nn)/rho(:,nn)
+        elsewhere
+          iso_qpcp_sub(:,nn) = iso_qpcp_sub(:,nn) + iso_prs_sde(:,nn)/rho(:)
+        end where
+
+        where(prg_gde(:) > 0.)
+          iso_qpcp_dep(:,nn) = iso_qpcp_dep(:,nn) + iso_prg_gde(:,nn)/rho(:)
+        elsewhere
+          iso_qpcp_sub(:,nn) = iso_qpcp_sub(:,nn) + iso_prg_gde(:,nn)/rho(:)
+        end where
+
+        iso_qpcp_revp(:,nn) = - iso_prv_rev(:,nn)
+
         iso_qvap_cld(:,nn) = iso_prw_vcd(:,nn)
         iso_qliq_auto(:,nn) = iso_prr_wau(:,nn) / rho(:) ! cloud liq --> rain autoconversion
         iso_qliq_coll(:,nn) = iso_prr_rcw(:,nn) / rho(:) ! collection of cloud liq by rain

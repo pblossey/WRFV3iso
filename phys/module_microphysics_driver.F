@@ -61,7 +61,8 @@ SUBROUTINE microphysics_driver(                                          &
                       ,hailnc,    hailncv                                &
                       ,graupelnc, graupelncv                             &
                       ,QLIQ_AUTO, QLIQ_COLL, QICE_AUTO, QICE_COLL & !bloss(2014-11): aggregate microphysical tendencies
-                      ,QICE_RIM, QPCP_DEP, QVAP_CLD, QPCP_SED &
+                      ,QICE_RIM, QVAP_CLD, QPCP_SED &
+                      ,QPCP_DEP, QPCP_SUB, QPCP_REVP & !bloss(dep/sub/revp)
                       ,hdo_rainnc,    hdo_rainncv                                &
                       ,hdo_snownc,    hdo_snowncv                                &
                       ,hdo_graupelnc, hdo_graupelncv                             &
@@ -69,9 +70,11 @@ SUBROUTINE microphysics_driver(                                          &
                       ,o18_snownc,    o18_snowncv                                &
                       ,o18_graupelnc, o18_graupelncv                             &
                       ,HDO_LIQ_AUTO, HDO_LIQ_COLL, HDO_ICE_AUTO, HDO_ICE_COLL & !bloss(2014-11): aggregate microphysical tendencies
-                      ,HDO_ICE_RIM, HDO_PCP_DEP, HDO_VAP_CLD, HDO_PCP_SED &
+                      ,HDO_ICE_RIM, HDO_VAP_CLD, HDO_PCP_SED &
+                      ,HDO_PCP_DEP, HDO_PCP_SUB, HDO_PCP_REVP & !bloss(dep/sub/revp)
                       ,O18_LIQ_AUTO, O18_LIQ_COLL, O18_ICE_AUTO, O18_ICE_COLL &
-                      ,O18_ICE_RIM, O18_PCP_DEP, O18_VAP_CLD, O18_PCP_SED &
+                      ,O18_ICE_RIM, O18_VAP_CLD, O18_PCP_SED &
+                      ,O18_PCP_DEP, O18_PCP_SUB, O18_PCP_REVP & !bloss(dep/sub/revp)
 #ifdef WRF_CHEM
                       ,rainprod, evapprod                                &
                       ,qv_b4mp, qc_b4mp, qi_b4mp, qs_b4mp                &
@@ -437,13 +440,16 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                  ,qns_curr,qnr_curr,qng_curr,qnn_curr,qnc_curr    &
                  ,qzr_curr,qzi_curr,qzs_curr,qzg_curr,qzh_curr    &
                  ,QLIQ_AUTO, QLIQ_COLL, QICE_AUTO, QICE_COLL & !bloss(2014-11): aggregate microphysical tendencies
-                 ,QICE_RIM, QPCP_DEP, QVAP_CLD, QPCP_SED &
+                 ,QICE_RIM, QVAP_CLD, QPCP_SED &
+                 ,QPCP_DEP, QPCP_SUB, QPCP_REVP & !bloss(dep/sub/revp)
                  ,hdo_qv,hdo_qc,hdo_qr,hdo_qi,hdo_qs,hdo_qg &
                  ,o18_qv,o18_qc,o18_qr,o18_qi,o18_qs,o18_qg &
                  ,HDO_LIQ_AUTO, HDO_LIQ_COLL, HDO_ICE_AUTO, HDO_ICE_COLL & !bloss(2014-11): aggregate microphysical tendencies
-                 ,HDO_ICE_RIM, HDO_PCP_DEP, HDO_VAP_CLD, HDO_PCP_SED &
+                 ,HDO_ICE_RIM, HDO_VAP_CLD, HDO_PCP_SED &
+                 ,HDO_PCP_DEP, HDO_PCP_SUB, HDO_PCP_REVP & !bloss(dep/sub/revp)
                  ,O18_LIQ_AUTO, O18_LIQ_COLL, O18_ICE_AUTO, O18_ICE_COLL &
-                 ,O18_ICE_RIM, O18_PCP_DEP, O18_VAP_CLD, O18_PCP_SED &
+                 ,O18_ICE_RIM, O18_VAP_CLD, O18_PCP_SED &
+                 ,O18_PCP_DEP, O18_PCP_SUB, O18_PCP_REVP & !bloss(dep/sub/revp)
                  ,qvolg_curr
 
    REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                  &
@@ -727,14 +733,17 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                  IF ( PRESENT( QLIQ_AUTO ) .AND. PRESENT ( QLIQ_COLL ) .AND.  &
                       PRESENT( QICE_AUTO ) .AND. PRESENT ( QICE_COLL ) .AND.  &
                       PRESENT( QICE_RIM ) .AND. PRESENT ( QPCP_DEP ) .AND.  &
+                      PRESENT( QPCP_SUB ) .AND. PRESENT ( QPCP_REVP ) .AND.  & !bloss(dep/sub/revp)
                       PRESENT( QVAP_CLD ) .AND. PRESENT ( QPCP_SED ) .AND.  &
                       PRESENT( HDO_LIQ_AUTO ) .AND. PRESENT ( HDO_LIQ_COLL ) .AND.  &
                       PRESENT( HDO_ICE_AUTO ) .AND. PRESENT ( HDO_ICE_COLL ) .AND.  &
                       PRESENT( HDO_ICE_RIM ) .AND. PRESENT ( HDO_PCP_DEP ) .AND.  &
+                      PRESENT( HDO_PCP_SUB ) .AND. PRESENT ( HDO_PCP_REVP ) .AND.  & !bloss(dep/sub/revp)
                       PRESENT( HDO_VAP_CLD ) .AND. PRESENT ( HDO_PCP_SED ) .AND.  &
                       PRESENT( O18_LIQ_AUTO ) .AND. PRESENT ( O18_LIQ_COLL ) .AND.  &
                       PRESENT( O18_ICE_AUTO ) .AND. PRESENT ( O18_ICE_COLL ) .AND.  &
                       PRESENT( o18_ICE_RIM ) .AND. PRESENT ( o18_PCP_DEP ) .AND.  &
+                      PRESENT( O18_PCP_SUB ) .AND. PRESENT ( O18_PCP_REVP ) .AND.  & !bloss(dep/sub/revp)
                       PRESENT( o18_VAP_CLD ) .AND. PRESENT ( o18_PCP_SED ) ) THEN
 
                    CALL mp_gt_driver_iso(                      &
@@ -788,25 +797,31 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                         QICE_AUTO=QICE_AUTO,                        &
                         QICE_COLL=QICE_COLL,                        &
                         QICE_RIM=QICE_RIM,                        &
-                        QPCP_DEP=QPCP_DEP,                        &
                         QVAP_CLD=QVAP_CLD,                        &
-                        QPCP_SED=QPCP_SED,                        &
+                        QPCP_SED=QPCP_SED,                        & !bloss(dep/sub/revp)
+                        QPCP_DEP=QPCP_DEP,                        & !bloss(dep/sub/revp)
+                        QPCP_SUB=QPCP_SUB,                        & !bloss(dep/sub/revp)
+                        QPCP_REVP=QPCP_REVP,                        &
                         HDO_LIQ_AUTO=HDO_LIQ_AUTO,                        & !bloss(2014-11): aggregate hdo microphys tendencies
                         HDO_LIQ_COLL=HDO_LIQ_COLL,                        &
                         HDO_ICE_AUTO=HDO_ICE_AUTO,                        &
                         HDO_ICE_COLL=HDO_ICE_COLL,                        &
                         HDO_ICE_RIM=HDO_ICE_RIM,                        &
-                        HDO_PCP_DEP=HDO_PCP_DEP,                        &
                         HDO_VAP_CLD=HDO_VAP_CLD,                        &
                         HDO_PCP_SED=HDO_PCP_SED,                        &
+                        HDO_PCP_DEP=HDO_PCP_DEP,                        & !bloss(dep/sub/revp)
+                        HDO_PCP_SUB=HDO_PCP_SUB,                        & !bloss(dep/sub/revp)
+                        HDO_PCP_REVP=HDO_PCP_REVP,                        & !bloss(dep/sub/revp)
                         O18_LIQ_AUTO=O18_LIQ_AUTO,                        & !bloss(2014-11): aggregate h2o18 microphys tendencies
                         O18_LIQ_COLL=O18_LIQ_COLL,                        &
                         O18_ICE_AUTO=O18_ICE_AUTO,                        &
                         O18_ICE_COLL=O18_ICE_COLL,                        &
                         O18_ICE_RIM=O18_ICE_RIM,                        &
-                        O18_PCP_DEP=O18_PCP_DEP,                        &
                         O18_VAP_CLD=O18_VAP_CLD,                        &
                         O18_PCP_SED=O18_PCP_SED,                        &
+                        O18_PCP_DEP=O18_PCP_DEP,                        & !bloss(dep/sub/revp)
+                        O18_PCP_SUB=O18_PCP_SUB,                        & !bloss(dep/sub/revp)
+                        O18_PCP_REVP=O18_PCP_REVP,                        & !bloss(dep/sub/revp)
 #ifdef WRF_CHEM
                         RAINPROD=rainprod,                  &
                         EVAPPROD=evapprod,                  &

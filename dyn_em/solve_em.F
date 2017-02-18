@@ -3410,16 +3410,16 @@ BENCH_START(micro_driver_tim)
       &        , O18_GRAUPELNC=grid%o18_graupelnc, O18_GRAUPELNCV=grid%o18_graupelncv     & 
       &        , QLIQ_AUTO=grid%qliq_auto, QLIQ_COLL=grid%qliq_coll       & !bloss/Thompson diagnostics
       &        , QICE_AUTO=grid%qice_auto, QICE_COLL=grid%qice_coll       &
-      &        , QICE_RIM=grid%qice_rim, QPCP_DEP=grid%qpcp_dep       &
-      &        , QVAP_CLD=grid%qvap_cld, QPCP_SED=grid%qpcp_sed       &
+      &        , QICE_RIM=grid%qice_rim, QVAP_CLD=grid%qvap_cld, QPCP_SED=grid%qpcp_sed       &
+      &        , QPCP_DEP=grid%qpcp_dep, QPCP_SUB=grid%qpcp_sub, QPCP_REVP=grid%qpcp_revp       & !bloss(dep/sub/revp)
       &        , HDO_LIQ_AUTO=grid%hdo_liq_auto, HDO_LIQ_COLL=grid%hdo_liq_coll       &
       &        , HDO_ICE_AUTO=grid%hdo_ice_auto, HDO_ICE_COLL=grid%hdo_ice_coll       &
-      &        , HDO_ICE_RIM=grid%hdo_ice_rim, HDO_PCP_DEP=grid%hdo_pcp_dep       &
-      &        , HDO_VAP_CLD=grid%hdo_vap_cld, HDO_PCP_SED=grid%hdo_pcp_sed       &
+      &        , HDO_ICE_RIM=grid%hdo_ice_rim, HDO_VAP_CLD=grid%hdo_vap_cld, HDO_PCP_SED=grid%hdo_pcp_sed       &
+      &        , HDO_PCP_DEP=grid%hdo_pcp_dep, HDO_PCP_SUB=grid%hdo_pcp_sub, HDO_PCP_REVP=grid%hdo_pcp_revp       & !bloss(dep/sub/revp)
       &        , O18_LIQ_AUTO=grid%o18_liq_auto, O18_LIQ_COLL=grid%o18_liq_coll       &
       &        , O18_ICE_AUTO=grid%o18_ice_auto, O18_ICE_COLL=grid%o18_ice_coll       &
-      &        , O18_ICE_RIM=grid%o18_ice_rim, O18_PCP_DEP=grid%o18_pcp_dep       &
-      &        , O18_VAP_CLD=grid%o18_vap_cld, O18_PCP_SED=grid%o18_pcp_sed       &
+      &        , O18_ICE_RIM=grid%o18_ice_rim, O18_VAP_CLD=grid%o18_vap_cld, O18_PCP_SED=grid%o18_pcp_sed       &
+      &        , O18_PCP_DEP=grid%o18_pcp_dep, O18_PCP_SUB=grid%o18_pcp_sub, O18_PCP_REVP=grid%o18_pcp_revp       & !bloss(dep/sub/revp)
       &        , qrcuten=grid%rqrcuten, qscuten=grid%rqscuten             &
       &        , qicuten=grid%rqicuten,mu=grid%mut                        &
       &        , HAIL=config_flags%gsfcgce_hail                           & ! for gsfcgce
