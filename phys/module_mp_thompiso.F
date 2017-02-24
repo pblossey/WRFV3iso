@@ -3968,7 +3968,7 @@
         end where
 
         where(prs_sde(:) > 0.)
-          iso_qpcp_dep(:,nn) = iso_qpcp_dep(:,nn) + iso_prs_sde(:,nn)/rho(:,nn)
+          iso_qpcp_dep(:,nn) = iso_qpcp_dep(:,nn) + iso_prs_sde(:,nn)/rho(:)
         elsewhere
           iso_qpcp_sub(:,nn) = iso_qpcp_sub(:,nn) + iso_prs_sde(:,nn)/rho(:)
         end where
