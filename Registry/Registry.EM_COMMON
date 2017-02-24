@@ -1184,34 +1184,42 @@ state    real  O18_GRAUPELNCV       ij      misc        1         -      r      
 
 #bloss(2014-11): accumulated volumetric tendencies of microphysical transformations
 #  within the Thompson microphysics.
+#bloss(2017-02): Split net deposition tendency into deposition, sublimation and rain evaporation
 state    real  QLIQ_AUTO           ikj      misc        1         -      rhdu     "QLIQ_AUTO"                "ACCUMULATED TENDENCY DUE TO AUTOCONVERSION OF CLOUD LIQUID TO RAIN"              "kg kg-1"      
 state    real  QLIQ_COLL           ikj      misc        1         -      rhdu     "QLIQ_COLL"                "ACCUMULATED TENDENCY DUE TO COLLECTION OF CLOUD LIQUID BY RAIN"              "kg kg-1"      
 state    real  QICE_AUTO           ikj      misc        1         -      rhdu     "QICE_AUTO"                "ACCUMULATED TENDENCY DUE TO AUTOCONVERSION OF CLOUD ICE TO SNOW"              "kg kg-1"      
 state    real  QICE_COLL           ikj      misc        1         -      rhdu     "QICE_COLL"                "ACCUMULATED TENDENCY DUE TO COLLECTION OF CLOUD ICE BY SNOW"              "kg kg-1"      
 state    real  QICE_RIM           ikj      misc        1         -      rhdu     "QICE_RIM"                "ACCUMULATED TENDENCY DUE TO RIMING OF CLOUD LIQUID ONTO SNOW/GRAUPEL"              "kg kg-1"      
-state    real  QPCP_DEP           ikj      misc        1         -      rhdu     "QPCP_DEP"                "ACCUMULATED TENDENCY OF VAPOR DEPOSITION ONTO RAIN/SNOW/GRAUPEL"              "kg kg-1"      
 state    real  QVAP_CLD           ikj      misc        1         -      rhdu     "QVAP_CLD"                "ACCUMULATED TENDENCY OF VAPOR CONDENSATION ONTO CLOUD LIQUID"              "kg kg-1"      
 state    real  QPCP_SED           ikj      misc        1         -      rhdu     "QPCP_SED"                "ACCUMULATED TENDENCY OF RAIN/SNOW/GRAUPEL DUE TO SEDIMENTATION"              "kg kg-1"      
+state    real  QPCP_DEP           ikj      misc        1         -      rhdu     "QPCP_DEP"                "ACCUMULATED TENDENCY OF VAPOR DEPOSITION ONTO SNOW/GRAUPEL"              "kg kg-1"      
+state    real  QPCP_SUB           ikj      misc        1         -      rhdu     "QPCP_SUB"                "ACCUMULATED TENDENCY OF VAPOR SUBLIMATION FROM SNOW/GRAUPEL"              "kg kg-1"      
+state    real  QPCP_REVP          ikj      misc        1         -      rhdu     "QPCP_REVP"                "ACCUMULATED TENDENCY OF EVAPORATION FROM RAIN"                           "kg kg-1"      
 
 #bloss(2014-11): accumulated volumetric tendencies of microphysical transformations
 #  for water isotopologues within the Thompson microphysics.
+#bloss(2017-02): Split net deposition tendency into deposition, sublimation and rain evaporation
 state    real  HDO_LIQ_AUTO           ikj      misc        1         -      rhdu     "HDO_LIQ_AUTO"                "ACCUMULATED HDO TENDENCY DUE TO AUTOCONVERSION OF CLOUD LIQUID TO RAIN"              "kg kg-1"      
 state    real  HDO_LIQ_COLL           ikj      misc        1         -      rhdu     "HDO_LIQ_COLL"                "ACCUMULATED HDO TENDENCY DUE TO COLLECTION OF CLOUD LIQUID BY RAIN"              "kg kg-1"      
 state    real  HDO_ICE_AUTO           ikj      misc        1         -      rhdu     "HDO_ICE_AUTO"                "ACCUMULATED HDO TENDENCY DUE TO AUTOCONVERSION OF CLOUD ICE TO SNOW"              "kg kg-1"      
 state    real  HDO_ICE_COLL           ikj      misc        1         -      rhdu     "HDO_ICE_COLL"                "ACCUMULATED HDO TENDENCY DUE TO COLLECTION OF CLOUD ICE BY SNOW"              "kg kg-1"      
 state    real  HDO_ICE_RIM           ikj      misc        1         -      rhdu     "HDO_ICE_RIM"                "ACCUMULATED HDO TENDENCY DUE TO RIMING OF CLOUD LIQUID ONTO SNOW/GRAUPEL"              "kg kg-1"      
-state    real  HDO_PCP_DEP           ikj      misc        1         -      rhdu     "HDO_PCP_DEP"                "ACCUMULATED HDO TENDENCY OF VAPOR DEPOSITION ONTO RAIN/SNOW/GRAUPEL"              "kg kg-1"      
 state    real  HDO_VAP_CLD           ikj      misc        1         -      rhdu     "HDO_VAP_CLD"                "ACCUMULATED HDO TENDENCY OF VAPOR CONDENSATION ONTO CLOUD LIQUID"              "kg kg-1"      
 state    real  HDO_PCP_SED           ikj      misc        1         -      rhdu     "HDO_PCP_SED"                "ACCUMULATED HDO TENDENCY OF RAIN/SNOW/GRAUPEL DUE TO SEDIMENTATION"              "kg kg-1"      
+state    real  HDO_PCP_DEP           ikj      misc        1         -      rhdu     "HDO_PCP_DEP"                "ACCUMULATED HDO TENDENCY OF VAPOR DEPOSITION ONTO RAIN/SNOW/GRAUPEL"              "kg kg-1"      
+state    real  HDO_PCP_SUB           ikj      misc        1         -      rhdu     "HDO_PCP_SUB"                "ACCUMULATED HDO TENDENCY OF VAPOR SUBLIMATION FROM SNOW/GRAUPEL"              "kg kg-1"      
+state    real  HDO_PCP_REVP          ikj      misc        1         -      rhdu     "HDO_PCP_REVP"                "ACCUMULATED HDO TENDENCY OF EVAPORATION FROM RAIN"                           "kg kg-1"      
 
 state    real  O18_LIQ_AUTO           ikj      misc        1         -      rhdu     "O18_LIQ_AUTO"                "ACCUMULATED H2O18 TENDENCY DUE TO AUTOCONVERSION OF CLOUD LIQUID TO RAIN"              "kg kg-1"      
 state    real  O18_LIQ_COLL           ikj      misc        1         -      rhdu     "O18_LIQ_COLL"                "ACCUMULATED H2O18 TENDENCY DUE TO COLLECTION OF CLOUD LIQUID BY RAIN"              "kg kg-1"      
 state    real  O18_ICE_AUTO           ikj      misc        1         -      rhdu     "O18_ICE_AUTO"                "ACCUMULATED H2O18 TENDENCY DUE TO AUTOCONVERSION OF CLOUD ICE TO SNOW"              "kg kg-1"      
 state    real  O18_ICE_COLL           ikj      misc        1         -      rhdu     "O18_ICE_COLL"                "ACCUMULATED H2O18 TENDENCY DUE TO COLLECTION OF CLOUD ICE BY SNOW"              "kg kg-1"      
 state    real  O18_ICE_RIM           ikj      misc        1         -      rhdu     "O18_ICE_RIM"                "ACCUMULATED H2O18 TENDENCY DUE TO RIMING OF CLOUD LIQUID ONTO SNOW/GRAUPEL"              "kg kg-1"      
-state    real  O18_PCP_DEP           ikj      misc        1         -      rhdu     "O18_PCP_DEP"                "ACCUMULATED H2O18 TENDENCY OF VAPOR DEPOSITION ONTO RAIN/SNOW/GRAUPEL"              "kg kg-1"      
 state    real  O18_VAP_CLD           ikj      misc        1         -      rhdu     "O18_VAP_CLD"                "ACCUMULATED H2O18 TENDENCY OF VAPOR CONDENSATION ONTO CLOUD LIQUID"              "kg kg-1"      
 state    real  O18_PCP_SED           ikj      misc        1         -      rhdu     "O18_PCP_SED"                "ACCUMULATED H2O18 TENDENCY OF RAIN/SNOW/GRAUPEL DUE TO SEDIMENTATION"              "kg kg-1"      
+state    real  O18_PCP_DEP           ikj      misc        1         -      rhdu     "O18_PCP_DEP"                "ACCUMULATED H2O18 TENDENCY OF VAPOR DEPOSITION ONTO RAIN/SNOW/GRAUPEL"              "kg kg-1"      
+state    real  O18_PCP_SUB           ikj      misc        1         -      rhdu     "O18_PCP_SUB"                "ACCUMULATED O18 TENDENCY OF VAPOR SUBLIMATION FROM SNOW/GRAUPEL"              "kg kg-1"      
+state    real  O18_PCP_REVP          ikj      misc        1         -      rhdu     "O18_PCP_REVP"                "ACCUMULATED O18 TENDENCY OF EVAPORATION FROM RAIN"                           "kg kg-1"      
 
 state    real    refl_10cm      ikj     dyn_em      1         -     hdu       "refl_10cm"             "Radar reflectivity (lamda = 10 cm)"  "dBZ"
 state    real  NCA              ij      misc        1         -      r        "NCA"                   "COUNTER OF THE CLOUD RELAXATION TIME IN KF CUMULUS SCHEME"    ""      
