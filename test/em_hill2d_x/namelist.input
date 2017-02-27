@@ -1,6 +1,6 @@
  &time_control
  run_days                            = 0,
- run_hours                           = 10,
+ run_hours                           = 12,
  run_minutes                         = 0,
  run_seconds                         = 0,
  start_year                          = 0001,
@@ -15,7 +15,7 @@
  end_hour                            = 10,
  end_minute                          = 00,
  end_second                          = 00,
- history_interval                    = 60,
+ history_interval                    = 20,
  frames_per_outfile                  = 1000,
  restart                             = .false.,
  restart_interval                    = 120,
@@ -27,23 +27,23 @@
  /
 
  &domains
- time_step                           = 20,
+ time_step                           = 15,
  time_step_fract_num                 = 0,
  time_step_fract_den                 = 1,
  max_dom                             = 1,
  s_we                                = 1,
- e_we                                = 202,
+ e_we                                = 302,
  s_sn                                = 1,
  e_sn                                = 3,
  s_vert                              = 1,
- e_vert                              = 41,
+ e_vert                              = 106,
  dx                                  = 2000,
  dy                                  = 2000,
  ztop                                = 30000.,
  /
 
  &physics
- mp_physics                          = 0,
+ mp_physics                          = 28,
  ra_lw_physics                       = 0,
  ra_sw_physics                       = 0,
  radt                                = 0,
@@ -76,6 +76,8 @@
  v_mom_adv_order                     = 3,
  h_sca_adv_order                     = 5,
  v_sca_adv_order                     = 3,
+ moist_adv_opt                       = 1,
+ scalar_adv_opt                       = 1,
  non_hydrostatic                     = .true.,
  /
 

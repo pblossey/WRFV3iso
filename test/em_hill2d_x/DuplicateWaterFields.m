@@ -1,6 +1,7 @@
 clear all; define_constants
 
-addpath('/home/disk/eos1/bloss/matlab/Rayleigh')
+%%addpath('/home/disk/eos1/bloss/matlab/Rayleigh')
+addpath('/n/home07/pblossey/matlab/Rayleigh')
 
 in(1).nc = 'wrfinput_d01';
 
