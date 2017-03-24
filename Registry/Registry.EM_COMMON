@@ -1399,10 +1399,18 @@ state integer  STEPRA          -        misc        1         -      r        "S
 state    real  RUBLTEN         ikj      misc        1         -      r        "RUBLTEN"               "COUPLED X WIND TENDENCY DUE TO PBL PARAMETERIZATION"  "Pa m s-2"
 state    real  RVBLTEN         ikj      misc        1         -      r        "RVBLTEN"               "COUPLED Y WIND TENDENCY DUE TO PBL PARAMETERIZATION"  "Pa m s-2"
 state    real  RTHBLTEN        ikj      misc        1         -      r        "RTHBLTEN"              "COUPLED THETA TENDENCY DUE TO PBL PARAMETERIZATION"   "Pa K s-1"
-state    real  RQVBLTEN        ikj      misc        1         -      r        "RQVBLTEN"              "COUPLED Q_V TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"
-state    real  RQCBLTEN        ikj      misc        1         -      r        "RQCBLTEN"              "COUPLED Q_C TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"
-state    real  RQIBLTEN        ikj      misc        1         -      r        "RQIBLTEN"              "COUPLED Q_I TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"      
+state    real  RQVBLTEN        ikj      misc        1         -      rh        "RQVBLTEN"              "COUPLED Q_V TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"
+state    real  RQCBLTEN        ikj      misc        1         -      rh        "RQCBLTEN"              "COUPLED Q_C TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"
+state    real  RQIBLTEN        ikj      misc        1         -      rh        "RQIBLTEN"              "COUPLED Q_I TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"      
 state    real  RQNIBLTEN       ikj      misc        1         -      r        "RQNIBLTEN"             "COUPLED Q_NI TENDENCY DUE TO PBL PARAMETERIZATION"    "Pa #  kg-1 s-1"
+
+#bloss/WISO: PBL parameterization tendencies for the water isotopologues HDO and H218O
+state    real  RHDO_QVBLTEN        ikj      misc        1         -      rh        "RHDO_QVBLTEN"              "COUPLED HDO VAPOR TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"
+state    real  RHDO_QCBLTEN        ikj      misc        1         -      rh        "RHDO_QCBLTEN"              "COUPLED HDO CLOUD LIQUID TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"
+state    real  RHDO_QIBLTEN        ikj      misc        1         -      rh        "RHDO_QIBLTEN"              "COUPLED HDO CLOUD ICE TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"      
+state    real  RO18_QVBLTEN        ikj      misc        1         -      rh        "RO18_QVBLTEN"              "COUPLED O18 VAPOR TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"
+state    real  RO18_QCBLTEN        ikj      misc        1         -      rh        "RO18_QCBLTEN"              "COUPLED O18 CLOUD LIQUID TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"
+state    real  RO18_QIBLTEN        ikj      misc        1         -      rh        "RO18_QIBLTEN"              "COUPLED O18 CLOUD ICE TENDENCY DUE TO PBL PARAMETERIZATION"     "Pa kg kg-1 s-1"      
 
 # For Noah UA changes
 state    real   flx4            ij         -        1         -      h        "FLX4"         "sensible heat from canopy"              "W m{-2}"
