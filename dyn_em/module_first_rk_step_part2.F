@@ -59,6 +59,7 @@ CONTAINS
     USE module_sfs_driver !JDM
     USE module_stoch, ONLY : update_stoch_ten, update_stoch , calculate_stoch_ten,  & 
                              do_fftback_along_x,do_fftback_along_y,sp2gp_prep
+    USE MODULE_WRF_ERROR !bloss: allows optional output of max/min check on blten
 
 
     IMPLICIT NONE
@@ -334,6 +335,8 @@ BENCH_START(cal_phy_tend)
                      grid%rthraten,                                    &
                      grid%rublten,grid%rvblten,grid%rthblten,          &
                      grid%rqvblten,grid%rqcblten,grid%rqiblten,        &
+                     grid%rhdo_qvblten,grid%rhdo_qcblten,grid%rhdo_qiblten,        & !bloss/WISO
+                     grid%ro18_qvblten,grid%ro18_qcblten,grid%ro18_qiblten,        & !bloss/WISO
                      grid%rucuten,grid%rvcuten,grid%rthcuten,          &
                      grid%rqvcuten,grid%rqccuten,grid%rqrcuten,        &
                      grid%rqicuten,grid%rqscuten,                      &
@@ -685,6 +688,8 @@ BENCH_START(update_phy_ten_tim)
                            grid%rvblten,grid%rvcuten,grid%rvshten,          &
                            grid%rqvblten,grid%rqcblten,grid%rqiblten,       &
                            grid%rqniblten,                                  & !CAMUWPBL scheme
+                           grid%rhdo_qvblten,grid%rhdo_qcblten,grid%rhdo_qiblten,       & !bloss/WISO
+                           grid%ro18_qvblten,grid%ro18_qcblten,grid%ro18_qiblten,       & !bloss/WISO
                            grid%rqvcuten,grid%rqccuten,grid%rqrcuten,       &
                            grid%rqicuten,grid%rqscuten,                     &
                            grid%rqcncuten,grid%rqincuten,                   & !BSINGH - Added two CU tends
@@ -704,6 +709,15 @@ BENCH_START(update_phy_ten_tim)
                            k_start, k_end                               )
 
        END DO
+
+      if(wrf_at_debug_level(120)) then
+        write(*,*) 'MAX/MIN QVTEND = ', MAXVAL(moist_tend(:,:,:,p_qv)), MINVAL(moist_tend(:,:,:,p_qv))
+        if(p_hdo_qv.ge.2) write(*,*) 'MAX/MIN HDO_QVTEND = ', &
+             MAXVAL(scalar_tend(:,:,:,p_hdo_qv)), MINVAL(scalar_tend(:,:,:,p_hdo_qv))
+        if(p_o18_qv.ge.2) write(*,*) 'MAX/MIN O18_QVTEND = ', &
+             MAXVAL(scalar_tend(:,:,:,p_o18_qv)), MINVAL(scalar_tend(:,:,:,p_o18_qv))
+      end if
+
        !$OMP END PARALLEL DO
 BENCH_END(update_phy_ten_tim)
 

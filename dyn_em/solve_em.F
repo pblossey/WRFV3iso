@@ -72,6 +72,7 @@ SUBROUTINE solve_em ( grid , config_flags  &
    USE module_first_rk_step_part2
    USE module_llxy, ONLY : proj_cassini
    USE module_avgflx_em, ONLY : zero_avgflx, upd_avgflx
+   USE MODULE_WRF_ERROR !bloss: allows optional output of max/min check on blten
 
    IMPLICIT NONE
 
@@ -738,6 +739,15 @@ BENCH_END(set_phys_bc_tim)
                             )
 
      END IF rk_step_is_one
+
+     if(wrf_at_debug_level(120)) then
+       if((is.eq.2).OR.(is.eq.8)) then
+         write(*,*) 'Just after first_rk_step_part2, rkstep = ', rk_step
+         write(*,*) 'MAX/MIN QVTEND = ', MAXVAL(moist_tend(:,:,:,p_qv)), MINVAL(moist_tend(:,:,:,p_qv))
+         write(*,*) 'MAX/MIN HDO_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_hdo_qv)), MINVAL(scalar_tend(:,:,:,p_hdo_qv))
+         write(*,*) 'MAX/MIN O18_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_o18_qv)), MINVAL(scalar_tend(:,:,:,p_o18_qv))
+       end if
+     end if
 
 BENCH_START(rk_tend_tim)
      !$OMP PARALLEL DO   &
@@ -1683,6 +1693,11 @@ BENCH_END(small_step_finish_tim)
      IF ((config_flags%moist_adv_opt /= ORIGINAL .and. config_flags%moist_adv_opt /= WENO_SCALAR) .and. &
          (rk_step == rk_order)) THEN
 
+       if(wrf_at_debug_level(120)) then
+         write(*,*) 'MAX/MIN QV = ', MAXVAL(moist_old(:,:,:,p_qv)), MINVAL(moist_old(:,:,:,p_qv))
+         write(*,*) 'MAX/MIN QVTEND = ', MAXVAL(moist_tend(:,:,:,p_qv)), MINVAL(moist_tend(:,:,:,p_qv))
+       end if
+
        !$OMP PARALLEL DO   &
        !$OMP PRIVATE ( ij )
        DO ij = 1 , grid%num_tiles
@@ -1744,6 +1759,21 @@ BENCH_END(small_step_finish_tim)
 
      IF ((config_flags%scalar_adv_opt /= ORIGINAL .and. config_flags%scalar_adv_opt /= WENO_SCALAR) .and. &
          (rk_step == rk_order)) THEN
+
+       if(wrf_at_debug_level(120)) then
+         write(*,*) 'Just before rk_update_scalar_pd, rkstep = ', rk_step
+         write(*,*) 'P_HDO_QV, P_O18_QV = ', P_HDO_QV, P_O18_QV
+         write(*,*) 'MAX/MIN HDO_QV = ', MAXVAL(scalar_old(:,:,:,p_hdo_qv)), MINVAL(scalar_old(:,:,:,p_hdo_qv))
+         write(*,*) 'MAX/MIN O18_QV = ', MAXVAL(scalar_old(:,:,:,p_o18_qv)), MINVAL(scalar_old(:,:,:,p_o18_qv))
+         write(*,*) 'MAX/MIN HDO_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_hdo_qv)), MINVAL(scalar_tend(:,:,:,p_hdo_qv))
+         write(*,*) 'MAX/MIN O18_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_o18_qv)), MINVAL(scalar_tend(:,:,:,p_o18_qv))
+
+         write(*,*) 'P_HDO_QC, P_O18_QC = ', P_HDO_QC, P_O18_QC
+         write(*,*) 'MAX/MIN HDO_QC = ', MAXVAL(scalar_old(:,:,:,p_hdo_qc)), MINVAL(scalar_old(:,:,:,p_hdo_qc))
+         write(*,*) 'MAX/MIN O18_QC = ', MAXVAL(scalar_old(:,:,:,p_o18_qc)), MINVAL(scalar_old(:,:,:,p_o18_qc))
+         write(*,*) 'MAX/MIN HDO_QCTEND = ', MAXVAL(scalar_tend(:,:,:,p_hdo_qc)), MINVAL(scalar_tend(:,:,:,p_hdo_qc))
+         write(*,*) 'MAX/MIN O18_QCTEND = ', MAXVAL(scalar_tend(:,:,:,p_o18_qc)), MINVAL(scalar_tend(:,:,:,p_o18_qc))
+       end if
 
        !$OMP PARALLEL DO   &
        !$OMP PRIVATE ( ij )
@@ -2542,9 +2572,21 @@ BENCH_END(tracer_adv_tim)
                                  grid%j_start(ij), grid%j_end(ij), &
                                  k_start    , k_end               )
 
-           IF( rk_step == 1 ) THEN
-             IF ( is .EQ. P_HDO_QV .OR. is .EQ. P_O18_QV .OR. config_flags%nested .OR. & !bloss/WISO
-                ( config_flags%specified .AND. config_flags%have_bcs_scalar ) ) THEN
+           if(wrf_at_debug_level(120)) then
+             if((is.eq.2).OR.(is.eq.8)) then
+               write(*,*) 'after rk_scalar_tend, rkstep = ', rk_step, ' is = ', is
+               write(*,*) 'MAX/MIN QVTEND = ', MAXVAL(moist_tend(:,:,:,p_qv)), MINVAL(moist_tend(:,:,:,p_qv))
+               write(*,*) 'MAX/MIN HDO_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_hdo_qv)), MINVAL(scalar_tend(:,:,:,p_hdo_qv))
+               write(*,*) 'MAX/MIN O18_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_o18_qv)), MINVAL(scalar_tend(:,:,:,p_o18_qv))
+             end if
+           end if
+
+               IF( ( config_flags%specified .or. config_flags%nested ) .and. rk_step == 1 ) THEN 
+                 IF ( is .EQ. P_HDO_QV .OR. is .EQ. P_O18_QV .OR. config_flags%nested .OR. &
+                    ( config_flags%specified .AND. config_flags%have_bcs_moist ) ) THEN
+!!$           IF( rk_step == 1 ) THEN
+!!$             IF ( is .EQ. P_HDO_QV .OR. is .EQ. P_O18_QV .OR. config_flags%nested .OR. & !bloss/WISO
+!!$                ( config_flags%specified .AND. config_flags%have_bcs_scalar ) ) THEN
 
                CALL relax_bdy_scalar ( scalar_tend(ims,kms,jms,is),                            &
                                        scalar(ims,kms,jms,is),  grid%mut,                      &
@@ -2581,6 +2623,15 @@ BENCH_END(tracer_adv_tim)
 
          ENDDO scalar_tile_loop_1
          !$OMP END PARALLEL DO
+
+         if(wrf_at_debug_level(120)) then
+           if((is.eq.2).OR.(is.eq.8)) then
+             write(*,*) 'Before rk_update_scalar, rkstep = ', rk_step, ' is = ', is
+             write(*,*) 'MAX/MIN QVTEND = ', MAXVAL(moist_tend(:,:,:,p_qv)), MINVAL(moist_tend(:,:,:,p_qv))
+             write(*,*) 'MAX/MIN HDO_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_hdo_qv)), MINVAL(scalar_tend(:,:,:,p_hdo_qv))
+             write(*,*) 'MAX/MIN O18_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_o18_qv)), MINVAL(scalar_tend(:,:,:,p_o18_qv))
+           end if
+         end if
 
          !$OMP PARALLEL DO   &
          !$OMP PRIVATE ( ij, tenddec )
@@ -2639,7 +2690,14 @@ BENCH_END(tracer_adv_tim)
 
      ENDIF other_scalar_advance
 
- !  update the pressure and density at the new time level
+     if(wrf_at_debug_level(120)) then
+       write(*,*) 'After rk_scalar_update, rkstep = ', rk_step
+       write(*,*) 'MAX/MIN QVTEND = ', MAXVAL(moist_tend(:,:,:,p_qv)), MINVAL(moist_tend(:,:,:,p_qv))
+       write(*,*) 'MAX/MIN HDO_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_hdo_qv)), MINVAL(scalar_tend(:,:,:,p_hdo_qv))
+       write(*,*) 'MAX/MIN O18_QVTEND = ', MAXVAL(scalar_tend(:,:,:,p_o18_qv)), MINVAL(scalar_tend(:,:,:,p_o18_qv))
+     end if
+   
+!  update the pressure and density at the new time level
 
      !$OMP PARALLEL DO   &
      !$OMP PRIVATE ( ij )
