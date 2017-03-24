@@ -5,6 +5,7 @@
 !-----------------------------------------------------------------------
 !
       USE MODULE_MODEL_CONSTANTS
+      USE MODULE_WRF_ERROR !bloss: allows optional output of max/min check on blten
 !
 !-----------------------------------------------------------------------
 !
@@ -130,12 +131,16 @@
 !----------------------------------------------------------------------
       SUBROUTINE MYJPBL(DT,STEPBL,HT,DZ                                &
      &                 ,PMID,PINT,TH,T,EXNER,QV,QCW,QCI,QCS,QCR,QCG    & !BSF
+     &                 ,HDO_QV,HDO_QCW,HDO_QCI & !bloss (2016-10)
+     &                 ,O18_QV,O18_QCW,O18_QCI & !bloss (2016-10)
      &                 ,U,V,RHO,TSK,QSFC,CHKLOWQ,THZ0,QZ0,UZ0,VZ0      & !BSF
      &                 ,LOWLYR,XLAND,SICE,SNOW                         &
      &                 ,TKE_MYJ,EXCH_H,USTAR,ZNT,EL_MYJ,PBLH,KPBL,CT   &
      &                 ,AKHS,AKMS,ELFLX,MIXHT                          &   !PLee (3/07)
      &                 ,RUBLTEN,RVBLTEN,RTHBLTEN,RQVBLTEN,RQCBLTEN     &
      &                 ,RQIBLTEN,RQSBLTEN,RQRBLTEN,RQGBLTEN            & !BSF
+     &                 ,RHDO_QVBLTEN,RHDO_QCBLTEN,RHDO_QIBLTEN         & !bloss(2016-10)
+     &                 ,RO18_QVBLTEN,RO18_QCBLTEN,RO18_QIBLTEN         & !bloss(2016-10)
      &                 ,IDS,IDE,JDS,JDE,KDS,KDE                        &
      &                 ,IMS,IME,JMS,JME,KMS,KME                        &
      &                 ,ITS,ITE,JTS,JTE,KTS,KTE)
@@ -166,6 +171,10 @@
 !
       REAL,OPTIONAL,INTENT(IN),DIMENSION(IMS:IME,KMS:KME,JMS:JME)::    &  !BSF
                                                 QV,QCW,QCI,QCS,QCR,QCG    !BSF
+!bloss(2016-10): water isotopologues HDO and H2O18
+      REAL,OPTIONAL,INTENT(IN),DIMENSION(IMS:IME,KMS:KME,JMS:JME)::    &  !bloss
+           HDO_QV,HDO_QCW,HDO_QCI, & !bloss
+           O18_QV,O18_QCW,O18_QCI !bloss
 !
       REAL,DIMENSION(IMS:IME,JMS:JME),INTENT(OUT) :: PBLH,MIXHT            !PLee (3/07)
 !
@@ -179,6 +188,11 @@
      &                                             RQCBLTEN,RQVBLTEN   &   !BSF
      &                                            ,RQIBLTEN,RQSBLTEN   &   !BSF
      &                                            ,RQRBLTEN,RQGBLTEN       !BSF
+!
+!bloss(2016-10): output arguments for water isotopic tendencies due to pbl mixing
+      REAL,OPTIONAL,INTENT(OUT),DIMENSION(IMS:IME,KMS:KME,JMS:JME)::   &   
+     &       RHDO_QVBLTEN,RHDO_QCBLTEN,RHDO_QIBLTEN      &  !bloss
+     &      ,RO18_QVBLTEN,RO18_QCBLTEN,RO18_QIBLTEN         !bloss
 !
       REAL,DIMENSION(IMS:IME,JMS:JME),INTENT(INOUT) :: CT,QSFC,QZ0     &
      &                                                ,THZ0,USTAR      &
@@ -198,12 +212,22 @@
 !   (NSPECS - starting number, NSPECE - ending number)
 !   => Up to 7 species are possible (T,Q,QCW,QCI,QCS,QCR,QCG)
 !
+!bloss(2016-10): With two water isotopologues (HDO, H218O), 
+!    the number of species can increase considerably.
+!    To keep things managable, neglect rain, snow and graupel
+!    since they are not mixed as of this version.
+!   => Up to 13 species are possible 
+!        (T, Q,QCW,QCI, HDO_QV,HDO_QCW, O18_Q,O18_QCW,
+!        O18_Q,O18_QCW)
+!
 !-- Logic behind the order of QCW,QCI,QCS,QCR,QCG is based on
 !   increasing terminal fall speed of hydrometeors from cloud
 !   droplets with very low fall speeds (QCW) to fast falling
 !   graupel (QCG)
 !
-      INTEGER, PARAMETER :: NSPECS=1, NSPECE=7  !BSF
+!bloss(2016-10)      INTEGER, PARAMETER :: NSPECS=1, NSPECE=7  !BSF
+!bloss(2016-10): T, Q/QCW/QCI for H2O/HDO/H218O
+      INTEGER, PARAMETER :: NSPECS=1, NSPECE=10
 !
 !-- flQI,flQS,flQR,flQG controls what hydrometeors are present
 !   that contribute to total condensate, CWM.  These flags may also be
@@ -212,6 +236,11 @@
 !   that cloud water is always being passed into the scheme.
 !
       LOGICAL :: flQI,flQS,flQR,flQG  !BSF
+!
+!bloss(2016-10) add flags for isotopologues and indices into SPECIES array
+!
+      LOGICAL :: flHDO,flO18
+      INTEGER :: IDX_HDO_QV,IDX_O18_QV
 !
       INTEGER :: I,J,K,KFLIP,LLOW,LMH,LMXL, NUMS,NSPEC,NSP   !BSF
 !
@@ -262,6 +291,7 @@
 !----------------------------------------------------------------------
 !BSF  Begin:
       NSPEC=3   !-- T, Q, Cloud water
+
       flQI=.FALSE.
       flQS=.FALSE.
       flQR=.FALSE.
@@ -271,6 +301,28 @@
         flQI=.TRUE.
         NSPEC=NSPEC+1
       ENDIF
+
+      !bloss(2016-10): check for isotopic water vapor
+      flHDO = .FALSE.
+      IF (PRESENT(HDO_QV)) THEN
+         !bloss(2016-10): Assume that vapor is accompanied by other hydrometeors
+         flHDO = .TRUE.
+         NSPEC=NSPEC+1 !bloss(2016-10): water vapor
+         IDX_HDO_QV = NSPEC
+         NSPEC=NSPEC+1 !bloss(2016-10): cloud liquid
+         IF (flQI) NSPEC=NSPEC+1 !bloss(2016-10): cloud ice
+      END IF
+
+      flO18 = .FALSE.
+      IF (PRESENT(O18_QV)) THEN
+         flO18 = .TRUE.
+         NSPEC=NSPEC+1 !bloss(2016-10): water vapor
+         IDX_O18_QV = NSPEC
+         NSPEC=NSPEC+1 !bloss(2016-10): cloud liquid
+         IF (flQI) NSPEC=NSPEC+1 !bloss(2016-10): cloud ice
+      END IF
+
+!bloss(TODO): add isotopologues if these species are mixed by the pbl scheme.
 !BSF      IF (PRESENT(QCS)) THEN
 !BSF        flQS=.TRUE.
 !BSF        NSPEC=NSPEC+1
@@ -507,6 +559,28 @@
               QCIK(K)=QCI(I,KFLIP,J)
               SPECIES(NSP,K)=QCIK(K)
             ENDIF
+!bloss(2016-10)
+            IF (flHDO) THEN
+               SPECIES(IDX_HDO_QV,K) = HDO_QV(I,KFLIP,J)/(1.+RATIOMX)
+               SPECIES(IDX_HDO_QV+1,K) = HDO_QCW(I,KFLIP,J)
+               NSP=NSP+2
+               IF (flQI) THEN
+                  SPECIES(IDX_HDO_QV+2,K)=HDO_QCI(I,KFLIP,J)
+                  NSP=NSP+1
+               ENDIF
+            ENDIF
+
+            IF (flO18) THEN
+               SPECIES(IDX_O18_QV,K) = O18_QV(I,KFLIP,J)/(1.+RATIOMX)
+               SPECIES(IDX_O18_QV+1,K) = O18_QCW(I,KFLIP,J)
+               NSP=NSP+2
+               IF (flQI) THEN
+                  SPECIES(IDX_O18_QV+2,K)=O18_QCI(I,KFLIP,J)
+                  NSP=NSP+1
+               ENDIF
+            ENDIF
+
+
 !BSF            IF (flQS) THEN
 !BSF              NSP=NSP+1
 !BSF              QCSK(K)=QCS(I,KFLIP,J)
@@ -639,7 +713,7 @@
             THNEW=THEK(KFLIP)+CWMK(KFLIP)*ELOCP*APE(I,K,J)
             DTDT=(THNEW-THOLD)*RDTTURBL
             QOLD=QV(I,K,J)/(1.+QV(I,K,J))
-            DQDT=(QK(KFLIP)-QOLD)*RDTTURBL
+            DQDT=(QK(KFLIP)-QOLD)*RDTTURBL !bloss: Tendency of specific humidity
             RTHBLTEN(I,K,J)=DTDT
             RQVBLTEN(I,K,J)=DQDT/(1.-QK(KFLIP))**2
 !BSF Begin:
@@ -649,6 +723,34 @@
 !BSF            IF (flQR) RQRBLTEN(I,K,J)=(QCRK(KFLIP)-QCR(I,K,J))*RDTTURBL
 !BSF            IF (flQG) RQGBLTEN(I,K,J)=(QCGK(KFLIP)-QCG(I,K,J))*RDTTURBL
 !BSF End:
+
+!bloss(2016-10): Compute tendencies for water isotopologues.
+!  The water isotopologues are negligible in mass terms, so that the isotopic vapor tendency
+!  is computed using the standard isotope QV for the computation of specific humidity.
+!  This guarantees that the isotopic tendencies are linear in the isotope ratio, which
+!  seems appropriate here.
+            IF (flHDO) THEN
+               RHDO_QVBLTEN(I,K,J) = (SPECIES(IDX_HDO_QV,KFLIP) - HDO_QV(I,K,J)/(1.+QV(I,K,J)) ) *RDTTURBL &
+                    /(1.-QK(KFLIP))**2
+               RHDO_QCBLTEN(I,K,J) = (SPECIES(IDX_HDO_QV+1,KFLIP) - HDO_QCW(I,K,J)) *RDTTURBL
+               IF (flQI) THEN
+                  RHDO_QIBLTEN(I,K,J) = (SPECIES(IDX_HDO_QV+2,KFLIP) - HDO_QCI(I,K,J)) *RDTTURBL
+                  NSP=NSP+1
+               ENDIF
+            ENDIF
+
+            IF (flO18) THEN
+               RO18_QVBLTEN(I,K,J) = (SPECIES(IDX_O18_QV,KFLIP) - O18_QV(I,K,J)/(1.+QV(I,K,J)) ) *RDTTURBL &
+                    /(1.-QK(KFLIP))**2
+               RO18_QCBLTEN(I,K,J) = (SPECIES(IDX_O18_QV+1,KFLIP) - O18_QCW(I,K,J)) *RDTTURBL
+               IF (flQI) THEN
+                  RO18_QIBLTEN(I,K,J) = (SPECIES(IDX_O18_QV+2,KFLIP) - O18_QCI(I,K,J)) *RDTTURBL
+                  NSP=NSP+1
+               ENDIF
+            ENDIF
+
+!bloss(2016-10): end
+
           ENDDO
 !
 !*** Begin debugging
@@ -709,7 +811,7 @@
 !*** End debugging
 !
 !----------------------------------------------------------------------
-        ENDDO
+      ENDDO
 !----------------------------------------------------------------------
         DO I=ITS,ITE
 !
@@ -760,6 +862,16 @@
 !----------------------------------------------------------------------
 !
       ENDDO main_integration
+!
+      if(wrf_at_debug_level(120)) then
+        write(*,*) 'MAX/MIN RQVBLTEN = ', MAXVAL(RQVBLTEN(:,:,:)), &
+             MINVAL(RQVBLTEN(:,:,:))
+        if(PRESENT(HDO_QV)) write(*,*) 'MAX/MIN RHDO_QVBLTEN = ', &
+             MAXVAL(RHDO_QVBLTEN(:,:,:)), MINVAL(RHDO_QVBLTEN(:,:,:))
+        if(PRESENT(O18_QV)) write(*,*) 'MAX/MIN RO18_QVBLTEN = ', &
+             MAXVAL(RO18_QVBLTEN(:,:,:)),  MINVAL(RO18_QVBLTEN(:,:,:))
+      end if
+
 !
 !----------------------------------------------------------------------
 !

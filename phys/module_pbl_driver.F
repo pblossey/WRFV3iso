@@ -71,6 +71,13 @@ CONTAINS
              !  Optional moisture tracer flags
                  ,f_qv,f_qc,f_qr                                   &
                  ,f_qi,f_qs,f_qg                                   &
+             !bloss(2016-11): Optional isotopic moisture tracers, bl tendencies and tracer flags
+                 ,hdo_qv_curr, hdo_qc_curr, hdo_qi_curr            & ! HDO mixing ratio
+                 ,rhdo_qvblten,rhdo_qcblten,rhdo_qiblten           & ! BL mixing tendency for HDO
+                 ,f_hdo_qv,f_hdo_qc,f_hdo_qi                       & ! tracer flags
+                 ,o18_qv_curr, o18_qc_curr, o18_qi_curr            & ! H2O18 mixing ratio
+                 ,ro18_qvblten,ro18_qcblten,ro18_qiblten           & ! BL mixing tendency H2O18
+                 ,f_o18_qv,f_o18_qc,f_o18_qi                       & ! tracer flags
 ! variables added for BEP
                ,frc_urb2d                                  &
                ,a_u_bep,a_v_bep,a_t_bep,a_q_bep            &
@@ -595,6 +602,18 @@ CONTAINS
                      ,rqiblten,rqsblten,rqgblten,rqniblten         !rqniblten  used in CAMUWPBL
 
 
+   !bloss(2016-11): Isotopic moisture flags, values and tendencies due to BL mixing
+   LOGICAL, INTENT(IN), OPTIONAL ::                             &
+         f_hdo_qv, f_hdo_qc, f_hdo_qi      &
+        ,f_o18_qv, f_o18_qc, f_o18_qi      
+
+   REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                 &
+         OPTIONAL, INTENT(INOUT) ::                              &
+                      hdo_qv_curr, hdo_qc_curr, hdo_qi_curr    &
+                     ,rhdo_qvblten,rhdo_qcblten,rhdo_qiblten    &
+                     ,o18_qv_curr, o18_qc_curr, o18_qi_curr    &
+                     ,ro18_qvblten,ro18_qcblten,ro18_qiblten    
+
    REAL,       DIMENSION( ims:ime, jms:jme )                    , &
                OPTIONAL                                         , &
                INTENT(INOUT)    ::                           HOL, &
@@ -686,6 +705,7 @@ CONTAINS
    LOGICAL :: flag_bep
    LOGICAL :: flag_myjsfc
    LOGICAL :: flag_qv, flag_qc, flag_qr, flag_qi, flag_qs, flag_qg, flag_qnc,flag_qni !flag_qnc,flag_qnc are used in camuwpbl scheme
+   LOGICAL :: flag_hdo, flag_o18 !bloss(2016-11): flags for water isotopologues
    CHARACTER*256 :: message
    REAL    :: next_bl_time
    LOGICAL :: run_param , doing_adapt_dt , decided
@@ -723,6 +743,10 @@ CONTAINS
   flag_qg = .FALSE. ; IF ( PRESENT( F_QG ) ) flag_qg = F_QG
   flag_qnc = .FALSE. ; IF ( PRESENT( F_QNC ) ) flag_qnc = F_QNC !Used in CAMUWPBL
   flag_qni = .FALSE. ; IF ( PRESENT( F_QNI ) ) flag_qni = F_QNI !Used in CAMUWPBL
+
+  !bloss(2016-11): add flag variables for water isotopologues
+  flag_hdo = .FALSE. ; IF ( PRESENT( F_HDO_QV ) ) flag_hdo = F_HDO_QV
+  flag_o18 = .FALSE. ; IF ( PRESENT( F_O18_QV ) ) flag_o18 = F_O18_QV
 
   if (bl_pbl_physics .eq. 0) return
 
@@ -902,6 +926,24 @@ CONTAINS
                RQNIBLTEN(I,K,J)=0.
             ENDDO
          ENDIF
+
+         !bloss(2016-11): Zero out water isotoplogues if present
+         IF (flag_hdo) THEN
+           DO k=kts,min(kte+1,kde)
+             RHDO_QVBLTEN(I,K,J)=0.
+             RHDO_QCBLTEN(I,K,J)=0.
+             RHDO_QIBLTEN(I,K,J)=0.
+           ENDDO
+         END IF
+
+         IF (flag_o18) THEN
+           DO k=kts,min(kte+1,kde)
+             RO18_QVBLTEN(I,K,J)=0.
+             RO18_QCBLTEN(I,K,J)=0.
+             RO18_QIBLTEN(I,K,J)=0.
+           ENDDO
+         END IF
+
       ENDDO
       ENDDO
 
@@ -1283,6 +1325,12 @@ CONTAINS
               ,RQVBLTEN=rqvblten,RQCBLTEN=rqcblten                  &
               ,RQIBLTEN=rqiblten,RQSBLTEN=rqsblten                  & !BSF
               ,RQRBLTEN=rqrblten,RQGBLTEN=rqgblten                  & !BSF
+              ,HDO_QV=hdo_qv_curr, RHDO_QVBLTEN=rhdo_qvblten   & !bloss(2016-11)
+              ,HDO_QCW=hdo_qc_curr, RHDO_QCBLTEN=rhdo_qcblten   & !bloss(2016-11)
+              ,HDO_QCI=hdo_qi_curr, RHDO_QIBLTEN=rhdo_qiblten   & !bloss(2016-11)
+              ,O18_QV=o18_qv_curr, RO18_QVBLTEN=ro18_qvblten   & !bloss(2016-11)
+              ,O18_QCW=o18_qc_curr, RO18_QCBLTEN=ro18_qcblten   & !bloss(2016-11)
+              ,O18_QCI=o18_qi_curr, RO18_QIBLTEN=ro18_qiblten   & !bloss(2016-11)
               ,IDS=ids,IDE=ide,JDS=jds,JDE=jde,KDS=kds,KDE=kde      &
               ,IMS=ims,IME=ime,JMS=jms,JME=jme,KMS=kms,KME=kme      &
               ,ITS=its,ITE=ite,JTS=jts,JTE=jte,KTS=kts,KTE=kte      &
