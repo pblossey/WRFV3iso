@@ -3804,31 +3804,43 @@ SUBROUTINE vertical_diffusion_2   ( ru_tendf, rv_tendf, rw_tendf, rt_tendf,   &
                                      ims, ime, jms, jme, kms, kme,         &
                                      its, ite, jts, jte, kts, kte         )
 
-          IF(PRESENT(HDO_QFX)) THEN
-            ! Fix tendencies at surface when surface fluxes of 
-            !   water isotopologues are present
-            IF ( im == P_HDO_QV ) THEN
-              DO j = j_start, j_end
-                DO i = i_start, i_end
-                  moist_flux = hdo_qfx(i,j)/rho(i,1,j)
-                  scalar_tendf(i,kts,j,im)=scalar_tendf(i,kts,j,im)  &
-                       +mu(i,j)*moist_flux*rdzw(i,kts,j)
-                ENDDO
-              ENDDO
-            ENDIF
-          END IF
+          !bloss(2017-05-03): Include test for isfflx value before applying isotopic surface fluxes
+          qflux_iso: SELECT CASE( config_flags%isfflx )
+          CASE (0)
+            ! do nothing
+          CASE (1,2) ! with surface moisture flux 
 
-          IF(PRESENT(O18_QFX)) THEN
-            IF ( im == P_O18_QV ) THEN
-              DO j = j_start, j_end
-                DO i = i_start, i_end
-                  moist_flux = o18_qfx(i,j)/rho(i,1,j)
-                  scalar_tendf(i,kts,j,im)=scalar_tendf(i,kts,j,im)  &
-                       +mu(i,j)*moist_flux*rdzw(i,kts,j)
+            IF(PRESENT(HDO_QFX)) THEN
+              ! Fix tendencies at surface when surface fluxes of 
+              !   water isotopologues are present
+              IF ( im == P_HDO_QV ) THEN
+                DO j = j_start, j_end
+                  DO i = i_start, i_end
+                    !bloss(2017-05-03): define isotopic flux as a specific humidity flux, including factor of 1/(1+qv)
+                    moist_flux = hdo_qfx(i,j)/rho(i,1,j)/(1.+moist(i,kts,j,P_QV))
+                    scalar_tendf(i,kts,j,im)=scalar_tendf(i,kts,j,im)  &
+                         +mu(i,j)*moist_flux*rdzw(i,kts,j)
+                  ENDDO
                 ENDDO
-              ENDDO
-            ENDIF
-          END IF
+              ENDIF
+            END IF
+
+            IF(PRESENT(O18_QFX)) THEN
+              IF ( im == P_O18_QV ) THEN
+                DO j = j_start, j_end
+                  DO i = i_start, i_end
+                    !bloss(2017-05-03): define isotopic flux as a specific humidity flux, including factor of 1/(1+qv)
+                    moist_flux = o18_qfx(i,j)/rho(i,1,j)/(1.+moist(i,kts,j,P_QV))
+                    scalar_tendf(i,kts,j,im)=scalar_tendf(i,kts,j,im)  &
+                         +mu(i,j)*moist_flux*rdzw(i,kts,j)
+                  ENDDO
+                ENDDO
+              ENDIF
+            END IF
+
+          CASE DEFAULT
+            CALL wrf_error_fatal( 'isfflx value invalid for diff_opt=2' )
+          END SELECT qflux_iso
 
      ENDDO scalar_loop
 
