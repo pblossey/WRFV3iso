@@ -1,7 +1,7 @@
 clear all; define_constants
 
 %%addpath('/home/disk/eos1/bloss/matlab/Rayleigh')
-addpath('/n/home07/pblossey/matlab/Rayleigh')
+addpath('Rayleigh')
 
 in(1).nc = 'wrfinput_d01';
 
@@ -60,6 +60,8 @@ switch whoption
   R0_H2O18 = 1/alpha_equil_liq(Tref,20);
   dD0 = 1000*(R0_HDO-1);
   dO180 = 1000*(R0_H2O18-1);
+
+  disp(sprintf('Surface dD = %4.0f, d18O = %4.1f',dD0,dO180))
 
   [p_Rayleigh,theta_Rayleigh,qv_Rayleigh,delHDO_Rayleigh,delO18_Rayleigh] = ...
       rayleigh_curve(theta_ref,pref,q0,dD0,dO180);
