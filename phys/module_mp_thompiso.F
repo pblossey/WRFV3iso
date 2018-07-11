@@ -1733,15 +1733,14 @@
             L_qg(k) = .false.
          endif
       enddo
-      ! initialize to unreasonable value.  This should make obvious
-      ! any spurious use of this ratio (e.g., multiplying the cloud
-      ! liquid isotope ratio by a process rate when no cloud liquid exists)
-      isor_v(:,:) = 1.e8
-      isor_c(:,:) = 1.e10
-      isor_i(:,:) = 1.e12
-      isor_r(:,:) = 1.e14
-      isor_s(:,:) = 1.e16
-      isor_g(:,:) = 1.e18
+      ! bloss(2018-07): Initialize isotope ratio to zero.
+      !   Will only be non-zero where condensate exists.
+      isor_v(:,:) = 0.
+      isor_c(:,:) = 0.
+      isor_i(:,:) = 0.
+      isor_r(:,:) = 0.
+      isor_s(:,:) = 0.
+      isor_g(:,:) = 0.
       do nn = 1,niso
         do k = kts, kte
           isor_v(k,nn) = iso_qv1d(k,nn)/qv(k) ! updated
@@ -3088,15 +3087,14 @@
             iso_qgten(k,:) = -iso_qg1d(k,:)*odt
          endif
       enddo
-      ! initialize to unreasonable value.  This should make obvious
-      ! any spurious use of this ratio (e.g., multiplying the cloud
-      ! liquid isotope ratio by a process rate when no cloud liquid exists)
-      isor_v(:,:) = 1.e8
-      isor_c(:,:) = 1.e10
-      isor_i(:,:) = 1.e12
-      isor_r(:,:) = 1.e14
-      isor_s(:,:) = 1.e16
-      isor_g(:,:) = 1.e18
+      ! bloss(2018-07): Initialize isotope ratio to zero.
+      !   Will only be non-zero where condensate exists.
+      isor_v(:,:) = 0.
+      isor_c(:,:) = 0.
+      isor_i(:,:) = 0.
+      isor_r(:,:) = 0.
+      isor_s(:,:) = 0.
+      isor_g(:,:) = 0.
       !Re-define isotope ratios based on updated mixing ratios
       do nn = 1,niso
         do k = kts, kte
